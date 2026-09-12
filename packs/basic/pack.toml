@@ -1,0 +1,448 @@
+# basic — one import that composes a working Gas City.
+#
+# Pulls in the packs a city normally imports by hand (bd, core, gascity and
+# the gascity worker roles), defines a mayor, and tunes every agent by
+# capability class rather than by a hardcoded model name.
+#
+# Import it at city scope and bind it as `gc`:
+#
+#   [imports.gc]
+#   source = "https://github.com/rileywhite/riley-gc-packs.git//packs/basic"
+#
+# That single import covers both agent scopes. The mayor and dog stay at the
+# city; the worker agents are declared scope = "rig" upstream, so the loader
+# expands them across every rig and binds each copy to that rig's working
+# tree. No rig-level import is needed.
+#
+# PROVIDER AGNOSTIC. Agents below never name a model. They select a tier —
+# frontier, deep, standard or light — which each provider block maps to its
+# own model. The same pack therefore runs on Claude Code, Codex or Gemini
+# without edits, and a city that switches providers keeps its cost shape.
+
+[pack]
+name = "basic"
+version = "0.1.0"
+schema = 2
+description = "Composed Gas City baseline: bd + core + gascity + worker roles, a mayor, and provider-agnostic capability tiers."
+
+# ── composed packs ─────────────────────────────────────────────────────
+# Pinned to the commits this configuration was exercised against. Move a
+# pin with `gc import upgrade`, not by hand.
+
+[imports.bd]
+source = "https://github.com/gastownhall/gascity/tree/main/examples/bd"
+version = "sha:f895c0ff47d6ee9334ed282a416387eb5b084d24"
+
+[imports.core]
+source = "https://github.com/gastownhall/gascity/tree/main/internal/bootstrap/packs/core"
+version = "sha:f895c0ff47d6ee9334ed282a416387eb5b084d24"
+
+[imports.gascity]
+source = "https://github.com/gastownhall/gascity-packs/tree/main/gascity"
+version = "sha:3b3b89f2011e06d84459aa7bea1552382f13930a"
+
+[imports.roles]
+source = "https://github.com/gastownhall/gascity-packs/tree/main/gascity/roles"
+version = "sha:3b3b89f2011e06d84459aa7bea1552382f13930a"
+
+# ── capability tiers ───────────────────────────────────────────────────
+# Four portable names, mapped per provider below.
+#
+#   frontier  the specialist top end     fable-5.1 / gpt-6-astra   / 3.1-pro-preview
+#   deep      heavyweight reasoning      opus-5    / gpt-5.6-sol   / 3.1-pro-preview
+#   standard  the workhorse              sonnet-5  / gpt-5.6-terra / 3.8-flash
+#   light     cheap and quick            haiku-4.5 / gpt-5.6-luna  / 3.8-flash
+#
+# Model ids here are current as of 2026-09-12 and deliberately go past what
+# gascity 1.4.1 knows. Its builtin table predates Fable 5.1 (2026-09-01) and
+# GPT-6 Astra (2026-09-03), and its Gemini entries still stop at 2.5. That is
+# fine: flag_args reach the CLI verbatim, so this schema is not bounded by
+# gascity's catalogue. Two consequences worth knowing.
+#
+# Gemini has no stable Pro model right now. gemini-3-pro-preview is shut
+# down, gemini-2.5-pro shuts down 2026-10-16, and 3.1 Pro is still a preview
+# endpoint — so both Gemini judgment tiers ride a preview id until Google
+# promotes one. Gemini still collapses four tiers into two, and the split
+# preserves the COST SHAPE rather than the absolute quality level: judgment
+# agents get Pro, mechanical agents get Flash. Mapping `standard` onto Pro
+# would have made the mechanical agents the expensive ones.
+#
+# frontier also carries external version requirements: Codex CLI 0.153.1+
+# for Astra, and a Gemini CLI new enough for 3.1 Pro.
+#
+# Nothing is mapped to `frontier` yet; it exists so a city can opt one agent
+# up without inventing vocabulary.
+#
+# Effort uses one vocabulary too: low, medium, high, xhigh, max. Codex tops
+# out at xhigh and clamps max onto it — gpt-6-astra itself accepts max, but
+# the effort option is provider-wide and gpt-5.6-terra and luna are not,
+# so the clamp holds to the weakest model in the set. Gemini CLI has no
+# reasoning-effort
+# control at all, so the option is declared but inert there — declaring it
+# keeps a portable agent config from failing to load under Gemini.
+#
+# There is deliberately NO speed/fast-mode option. No CLI among the three
+# exposes one: Claude Code has no --fast flag, Codex expresses speed only
+# through model choice, Gemini likewise. A declared-but-inert speed option
+# would look like a control and silently do nothing, so it is left out until
+# a provider gives it a real surface.
+
+# ── claude ─────────────────────────────────────────
+[providers.claude]
+base = "builtin:claude"
+ready_delay_ms = 0
+options_schema_merge = "by_key"
+option_defaults = { model = "standard", effort = "medium" }
+
+# model: four portable tiers, then this provider's own current values.
+# Prior-generation 4.x entries are intentionally gone: the current
+# self-serve lineup is Fable 5.1, Opus 5, Sonnet 5 and Haiku 4.5.
+[[providers.claude.options_schema]]
+key = "model"
+label = "Model tier"
+type = "select"
+default = "standard"
+
+[[providers.claude.options_schema.choices]]
+value = "frontier"
+label = "Frontier"
+flag_args = ["--model", "claude-fable-5-1"]
+
+[[providers.claude.options_schema.choices]]
+value = "deep"
+label = "Deep"
+flag_args = ["--model", "claude-opus-5"]
+
+[[providers.claude.options_schema.choices]]
+value = "standard"
+label = "Standard"
+flag_args = ["--model", "claude-sonnet-5"]
+
+[[providers.claude.options_schema.choices]]
+value = "light"
+label = "Light"
+flag_args = ["--model", "claude-haiku-4-5-20251001"]
+
+# passthrough: pin an exact model instead of a tier
+
+[[providers.claude.options_schema.choices]]
+value = "fable-5-1"
+label = "Fable 5.1"
+flag_args = ["--model", "claude-fable-5-1"]
+
+[[providers.claude.options_schema.choices]]
+value = "fable-5"
+label = "Fable 5"
+flag_args = ["--model", "claude-fable-5"]
+
+[[providers.claude.options_schema.choices]]
+value = "opus-5"
+label = "Opus 5"
+flag_args = ["--model", "claude-opus-5"]
+
+[[providers.claude.options_schema.choices]]
+value = "opus-5-1m"
+label = "Opus 5 1M"
+flag_args = ["--model", "claude-opus-5[1m]"]
+
+[[providers.claude.options_schema.choices]]
+value = "sonnet-5"
+label = "Sonnet 5"
+flag_args = ["--model", "claude-sonnet-5"]
+
+[[providers.claude.options_schema.choices]]
+value = "haiku"
+label = "Haiku 4.5"
+flag_args = ["--model", "claude-haiku-4-5-20251001"]
+
+[[providers.claude.options_schema]]
+key = "effort"
+label = "Effort"
+type = "select"
+default = "medium"
+
+[[providers.claude.options_schema.choices]]
+value = "low"
+label = "Low"
+flag_args = ["--effort", "low"]
+
+[[providers.claude.options_schema.choices]]
+value = "medium"
+label = "Medium"
+flag_args = ["--effort", "medium"]
+
+[[providers.claude.options_schema.choices]]
+value = "high"
+label = "High"
+flag_args = ["--effort", "high"]
+
+[[providers.claude.options_schema.choices]]
+value = "xhigh"
+label = "Xhigh"
+flag_args = ["--effort", "xhigh"]
+
+[[providers.claude.options_schema.choices]]
+value = "max"
+label = "Max"
+flag_args = ["--effort", "max"]
+
+# ── codex ─────────────────────────────────────────
+[providers.codex]
+base = "builtin:codex"
+options_schema_merge = "by_key"
+option_defaults = { model = "standard", effort = "medium" }
+
+# model: four portable tiers, then this provider's own current values.
+# gpt-5.2, gpt-5.3-codex, gpt-5.4 and gpt-5.4-mini are intentionally
+# gone: all are retired or deprecated for Codex with ChatGPT sign-in.
+[[providers.codex.options_schema]]
+key = "model"
+label = "Model tier"
+type = "select"
+default = "standard"
+
+[[providers.codex.options_schema.choices]]
+value = "frontier"
+label = "Frontier"
+flag_args = ["--model", "gpt-6-astra"]
+
+[[providers.codex.options_schema.choices]]
+value = "deep"
+label = "Deep"
+flag_args = ["--model", "gpt-5.6-sol"]
+
+[[providers.codex.options_schema.choices]]
+value = "standard"
+label = "Standard"
+flag_args = ["--model", "gpt-5.6-terra"]
+
+[[providers.codex.options_schema.choices]]
+value = "light"
+label = "Light"
+flag_args = ["--model", "gpt-5.6-luna"]
+
+# passthrough: pin an exact model instead of a tier
+
+[[providers.codex.options_schema.choices]]
+value = "gpt-6-astra"
+label = "GPT-6 Astra"
+flag_args = ["--model", "gpt-6-astra"]
+
+[[providers.codex.options_schema.choices]]
+value = "gpt-5.6-sol"
+label = "GPT-5.6 Sol"
+flag_args = ["--model", "gpt-5.6-sol"]
+
+[[providers.codex.options_schema.choices]]
+value = "gpt-5.6-terra"
+label = "GPT-5.6 Terra"
+flag_args = ["--model", "gpt-5.6-terra"]
+
+[[providers.codex.options_schema.choices]]
+value = "gpt-5.6-luna"
+label = "GPT-5.6 Luna"
+flag_args = ["--model", "gpt-5.6-luna"]
+
+[[providers.codex.options_schema.choices]]
+value = "gpt-5.5"
+label = "GPT-5.5"
+flag_args = ["--model", "gpt-5.5"]
+
+[[providers.codex.options_schema.choices]]
+value = "gpt-5.3-codex-spark"
+label = "GPT-5.3 Codex Spark"
+flag_args = ["--model", "gpt-5.3-codex-spark"]
+
+[[providers.codex.options_schema]]
+key = "effort"
+label = "Effort"
+type = "select"
+default = "medium"
+
+[[providers.codex.options_schema.choices]]
+value = "low"
+label = "Low"
+flag_args = ["-c", "model_reasoning_effort=low"]
+
+[[providers.codex.options_schema.choices]]
+value = "medium"
+label = "Medium"
+flag_args = ["-c", "model_reasoning_effort=medium"]
+
+[[providers.codex.options_schema.choices]]
+value = "high"
+label = "High"
+flag_args = ["-c", "model_reasoning_effort=high"]
+
+[[providers.codex.options_schema.choices]]
+value = "xhigh"
+label = "Xhigh"
+flag_args = ["-c", "model_reasoning_effort=xhigh"]
+
+[[providers.codex.options_schema.choices]]
+value = "max"
+label = "Max"
+flag_args = ["-c", "model_reasoning_effort=xhigh"]
+
+# ── gemini ─────────────────────────────────────────
+[providers.gemini]
+base = "builtin:gemini"
+options_schema_merge = "by_key"
+option_defaults = { model = "standard", effort = "medium" }
+
+# model: four portable tiers, then this provider's own current values.
+# The 2.5 entries are intentionally gone: gemini-2.5-pro shuts down
+# 2026-10-16, and gemini-3-pro-preview is already shut down.
+[[providers.gemini.options_schema]]
+key = "model"
+label = "Model tier"
+type = "select"
+default = "standard"
+
+[[providers.gemini.options_schema.choices]]
+value = "frontier"
+label = "Frontier"
+flag_args = ["--model", "gemini-3.1-pro-preview"]
+
+[[providers.gemini.options_schema.choices]]
+value = "deep"
+label = "Deep"
+flag_args = ["--model", "gemini-3.1-pro-preview"]
+
+[[providers.gemini.options_schema.choices]]
+value = "standard"
+label = "Standard"
+flag_args = ["--model", "gemini-3.8-flash"]
+
+[[providers.gemini.options_schema.choices]]
+value = "light"
+label = "Light"
+flag_args = ["--model", "gemini-3.8-flash"]
+
+# passthrough: pin an exact model instead of a tier
+
+[[providers.gemini.options_schema.choices]]
+value = "gemini-3.1-pro-preview"
+label = "Gemini 3.1 Pro (preview)"
+flag_args = ["--model", "gemini-3.1-pro-preview"]
+
+[[providers.gemini.options_schema.choices]]
+value = "gemini-3.8-flash"
+label = "Gemini 3.8 Flash"
+flag_args = ["--model", "gemini-3.8-flash"]
+
+[[providers.gemini.options_schema.choices]]
+value = "gemini-3.6-flash"
+label = "Gemini 3.6 Flash"
+flag_args = ["--model", "gemini-3.6-flash"]
+
+[[providers.gemini.options_schema]]
+key = "effort"
+label = "Effort"
+type = "select"
+default = "medium"
+
+[[providers.gemini.options_schema.choices]]
+value = "low"
+label = "Low"
+
+[[providers.gemini.options_schema.choices]]
+value = "medium"
+label = "Medium"
+
+[[providers.gemini.options_schema.choices]]
+value = "high"
+label = "High"
+
+[[providers.gemini.options_schema.choices]]
+value = "xhigh"
+label = "Xhigh"
+
+[[providers.gemini.options_schema.choices]]
+value = "max"
+label = "Max"
+
+# ── agent tiers ────────────────────────────────────────────────────────
+# The split is by the kind of work, not by how often the agent runs.
+# Agents that execute a defined procedure stay cheap. Agents that decide
+# what to build, or judge whether the result is acceptable, do not.
+
+# mechanical: polls, sweeps, routes. Nothing here forms a judgment.
+[[patches.agent]]
+name = "dog"
+option_defaults = { model = "light", effort = "low" }
+
+# Routing control beads is mechanical, but a wrong route stalls a run, so
+# it sits a tier above the dog.
+[[patches.agent]]
+name = "control-dispatcher"
+option_defaults = { model = "standard", effort = "low" }
+
+# Deterministic setup, validation, gates, metadata, finalization.
+[[patches.agent]]
+name = "run-operator"
+option_defaults = { model = "standard", effort = "low" }
+
+# Authorized pushes, PR creation, publication surfaces.
+[[patches.agent]]
+name = "publisher"
+option_defaults = { model = "standard", effort = "low" }
+
+# Classification against supplied evidence: bounded, but not clerical.
+[[patches.agent]]
+name = "issue-triager"
+option_defaults = { model = "standard", effort = "medium" }
+
+# judgment: these decide what the work is, how to build it, or whether the
+# result passes. A bad call here costs far more than the tokens saved.
+[[patches.agent]]
+name = "mayor"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "task-decomposer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "requirements-planner"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "design-author"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "design-implementation-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "design-test-risk-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "implementation-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+# Finding what is absent is harder than checking what is present.
+[[patches.agent]]
+name = "gap-analyst"
+option_defaults = { model = "deep", effort = "high" }
+
+# Aggregates verdicts the reviewers already reasoned out, so it keeps the
+# deep tier for judgment but does not need the reviewers' effort budget.
+[[patches.agent]]
+name = "review-synthesizer"
+option_defaults = { model = "deep", effort = "medium" }
+
+# Writes the actual code, runs the tests, repairs CI.
+[[patches.agent]]
+name = "implementation-worker"
+option_defaults = { model = "deep", effort = "high" }
+
+# Scoped to the city for the same reason the mayor agent is: without it the
+# session is expanded per rig and then disabled, because its city-scoped
+# template does not exist at rig scope.
+[[named_session]]
+template = "mayor"
+mode = "always"
+scope = "city"

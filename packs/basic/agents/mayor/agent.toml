@@ -1,0 +1,6 @@
+description = "City coordinator: plans work, manages rigs and agents, dispatches tasks, and monitors progress"
+
+# City-only. Without this the loader expands the mayor across every rig in
+# the city, because agents from an imported pack are rig-expanded unless
+# they say otherwise. A city wants exactly one mayor.
+scope = "city"
