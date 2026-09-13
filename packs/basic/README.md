@@ -129,6 +129,31 @@ Two things are city-only by schema, and a pack declaring them fails to load.
   per-city. `gc rig add <path>` writes these for you.
 - **`[workspace] provider`.** Set `provider = "claude"` in your `city.toml`.
 
+## Overriding one agent from your city.toml
+
+The tiers here are defaults. To change one agent for your city, patch it from
+`city.toml`. Two details matter, and both are easy to get wrong.
+
+Name the agent with its **import binding**. City-level patches match on the
+binding-qualified name, so it is `gc.implementation-worker`, not
+`implementation-worker`. This differs from `[[rigs.patches]]` entries, which
+match the bare name within their own pack.
+
+Scope it with **`dir`**, not `rig`. Both name the rig, but `rig` is the newer
+key and gascity 1.4.1 does not understand it. On that release a `rig` key is
+ignored, the patch falls back to city scope, and it fails with "agent not
+found in merged config" rather than telling you the key was the problem.
+
+```toml
+[[patches.agent]]
+dir = "my-repo"
+name = "gc.implementation-worker"
+option_defaults = { model = "frontier", effort = "max" }
+```
+
+A patch with no `dir` targets the city-scoped copy, which is what you want for
+`gc.mayor` or `gc.dog`.
+
 ## If your rig has a single working tree
 
 This pack does not serialize implementation workers, because a rig using
@@ -137,8 +162,9 @@ is one checkout that every session shares, add this to your `city.toml` so
 concurrent workers cannot stomp each other's edits and git index:
 
 ```toml
-[[rigs.patches]]
-agent = "implementation-worker"
+[[patches.agent]]
+dir = "my-repo"
+name = "gc.implementation-worker"
 max_active_sessions = 1
 ```
 
