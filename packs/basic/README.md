@@ -43,19 +43,25 @@ a copy would be created per rig, and a city wants exactly one mayor.
 
 ## Capability tiers
 
-Four portable names replace hardcoded model ids. Current as of 2026-09-12.
+Four portable names replace hardcoded model ids. Current as of 2026-09-24.
 
 | Tier | Claude | Codex | Gemini |
 |---|---|---|---|
 | frontier | claude-fable-5-1 | gpt-6-astra | gemini-3.1-pro-preview |
-| deep | claude-opus-5 | gpt-5.6-sol | gemini-3.1-pro-preview |
-| standard | claude-sonnet-5 | gpt-5.6-terra | gemini-3.8-flash |
-| light | claude-haiku-4-5-20251001 | gpt-5.6-luna | gemini-3.8-flash |
+| deep | claude-opus-5-5 | gpt-6-sol | gemini-3.1-pro-preview |
+| standard | claude-sonnet-5 | gpt-6-luna | gemini-3.8-flash |
+| light | claude-haiku-4-5 | gpt-6-luna | gemini-3.8-flash |
 
 Nothing is mapped to `frontier` yet. It exists so a city can raise one agent
 without inventing vocabulary.
 
-These ids deliberately go past what gascity 1.4.1 knows. Its built-in table
+Both lineups moved on 2026-09-22. Anthropic's Opus 5.5 reaches Fable 5.1
+quality on most work at roughly 40% less than Opus 5, so it takes the deep
+tier. OpenAI completed the GPT-6 family with Sol and Luna and retired the 5.6
+line; there is no GPT-6 Terra, so Codex collapses standard and light onto Luna
+the way Gemini already collapses its Pro tiers.
+
+These ids deliberately go past what gascity knows. Its built-in table
 predates Fable 5.1 and GPT-6 Astra, both of which shipped in early September
 2026, and its Gemini entries still stop at 2.5. That works because
 `flag_args` reach the CLI verbatim, so the schema is not limited to
@@ -74,12 +80,13 @@ mechanical agents get Flash.
 
 Each provider also keeps its current models as passthrough choices, so a
 city can pin an exact model instead of a tier. Retired models are not
-carried: Claude's 4.x generation, Codex's gpt-5.2, gpt-5.3-codex, gpt-5.4
-and gpt-5.4-mini, and Gemini's 2.5 line are all omitted.
+carried: Claude's 4.x generation, the whole Codex 5.x line (gpt-5.6-sol,
+gpt-5.6-terra, gpt-5.6-luna, gpt-5.5, gpt-5.4 and gpt-5.3-codex-spark), and
+Gemini's 2.5 line are all omitted.
 
 Effort shares one vocabulary: `low`, `medium`, `high`, `xhigh`, `max`. Codex
-clamps `max` onto `xhigh`. Astra itself accepts `max`, but the effort option
-is provider-wide and the 5.6 models are not, so the clamp holds to the
+clamps `max` onto `xhigh`. Astra accepts `max`, but the effort option is
+provider-wide and Sol and Luna are not confirmed to, so the clamp holds to the
 weakest model in the set. Gemini CLI has no reasoning effort control at all,
 so the option is declared but inert there. Declaring it anyway is deliberate,
 because it keeps a portable agent config from failing to load under Gemini.
