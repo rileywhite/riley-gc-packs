@@ -43,40 +43,41 @@ a copy would be created per rig, and a city wants exactly one mayor.
 
 ## Capability tiers
 
-Four portable names replace hardcoded model ids. Current as of 2026-09-24.
+Four portable names replace hardcoded model ids. Current as of 2026-10-20.
 
 | Tier | Claude | Codex | Gemini |
 |---|---|---|---|
-| frontier | claude-fable-5-1 | gpt-6-astra | gemini-3.1-pro-preview |
-| deep | claude-opus-5-5 | gpt-6-sol | gemini-3.1-pro-preview |
-| standard | claude-sonnet-5 | gpt-6-luna | gemini-3.8-flash |
-| light | claude-haiku-4-5 | gpt-6-luna | gemini-3.8-flash |
+| frontier | claude-fable-5-1 | gpt-6-astra | gemini-4-argon |
+| deep | claude-opus-5-5 | gpt-6.1-sol | gemini-3.8-flash |
+| standard | claude-sonnet-5-5 | gpt-6.1-sol | gemini-3.8-flash |
+| light | claude-haiku-5-5 | gpt-6-luna | gemini-3.5-flash-lite |
 
 Nothing is mapped to `frontier` yet. It exists so a city can raise one agent
 without inventing vocabulary.
 
-Both lineups moved on 2026-09-22. Anthropic's Opus 5.5 reaches Fable 5.1
-quality on most work at roughly 40% less than Opus 5, so it takes the deep
-tier. OpenAI completed the GPT-6 family with Sol and Luna and retired the 5.6
-line; there is no GPT-6 Terra, so Codex collapses standard and light onto Luna
-the way Gemini already collapses its Pro tiers.
+Codex maps deep and standard to the same model on purpose. GPT-6 has no Terra,
+so there is no mid model for standard, and demoting it to Luna would put the
+workhorse agents on the high-volume model. The two tiers share GPT-6.1 Sol and
+differentiate on effort instead, which the agent table below already does:
+standard agents run low or medium, deep agents run high. OpenAI recommends 6.1
+Sol over Astra for coding and agentic work on cost grounds, so frontier stays a
+deliberate opt-in.
 
-These ids deliberately go past what gascity knows. Its built-in table
-predates Fable 5.1 and GPT-6 Astra, both of which shipped in early September
-2026, and its Gemini entries still stop at 2.5. That works because
-`flag_args` reach the CLI verbatim, so the schema is not limited to
-gascity's catalogue.
+Gemini reserves Gemini 4 Argon, its flagship reasoning model, for frontier only.
+Deep and standard both run 3.8 Flash, which Google builds for long-horizon
+software engineering, and light drops to 3.5 Flash-Lite for high-throughput
+work. Google names those two Flash models together as its current pair for new
+projects. Argon being stable also retires this pack's long-standing caveat that
+Gemini had no stable top model.
 
-Two consequences follow. The frontier tier carries external version
-requirements: Codex CLI 0.153.1 or later for Astra, and a Gemini CLI new
-enough for 3.1 Pro. And Gemini currently has no stable Pro model at all,
-since 3 Pro Preview is shut down, 2.5 Pro shuts down on 2026-10-16, and 3.1
-Pro is still a preview endpoint. Both Gemini judgment tiers therefore ride a
-preview id until Google promotes one.
+One asymmetry is worth knowing. On Gemini, deep and standard resolve to the same
+model, and effort is inert there, so those two tiers behave identically. Codex
+gets away with sharing a model because effort still separates its tiers. Under
+Gemini, raising an agent from standard to deep changes nothing; move it to
+frontier to get more capability.
 
-Gemini still collapses four tiers into two. The mapping preserves the cost
-shape rather than the absolute quality level: judgment agents get Pro,
-mechanical agents get Flash.
+The frontier tier still carries one external requirement: a Codex CLI new enough
+for GPT-6 Astra.
 
 Each provider also keeps its current models as passthrough choices, so a
 city can pin an exact model instead of a tier. Retired models are not
