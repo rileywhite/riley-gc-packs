@@ -1,49 +1,31 @@
-# basic — one import that composes a working Gas City.
+# house — house style for a Gas City: capability tiers and a mayor.
 #
-# Pulls in the packs a city normally imports by hand (bd, core, gascity and
-# the gascity worker roles), defines a mayor, and tunes every agent by
-# capability class rather than by a hardcoded model name.
+# The shared layer composed alongside the packs a city inherits. It defines
+# the provider-agnostic tier vocabulary those packs' agent patches select
+# from, the city's mayor, and any ways of working the city wants on top of
+# upstream. It imports no other pack, so it composes with any set of them.
 #
-# Import it at city scope and bind it as `gc`:
+# Import it at city scope next to the packs it tunes:
 #
 #   [imports.gc]
-#   source = "https://github.com/rileywhite/riley-gc-packs.git//packs/basic"
+#   source = "https://github.com/rileywhite/riley-gc-packs.git//packs/gc"
 #
-# That single import covers both agent scopes. The mayor and dog stay at the
-# city; the worker agents are declared scope = "rig" upstream, so the loader
-# expands them across every rig and binds each copy to that rig's working
-# tree. No rig-level import is needed.
+#   [imports.bd]
+#   source = "https://github.com/rileywhite/riley-gc-packs.git//packs/bd"
 #
-# PROVIDER AGNOSTIC. Agents below never name a model. They select a tier —
-# frontier, deep, standard or light — which each provider block maps to its
-# own model. The same pack therefore runs on Claude Code, Codex or Gemini
-# without edits, and a city that switches providers keeps its cost shape.
+#   [imports.house]
+#   source = "https://github.com/rileywhite/riley-gc-packs.git//packs/house"
+#
+# PROVIDER AGNOSTIC. No agent names a model. Agents select a tier — frontier,
+# deep, standard or light — which each provider block maps to its own model.
+# The same packs therefore run on Claude Code, Codex or Gemini without edits,
+# and a city that switches providers keeps its cost shape.
 
 [pack]
-name = "basic"
-version = "0.3.0"
+name = "house"
+version = "0.4.0"
 schema = 2
-description = "Composed Gas City baseline: bd + core + gascity + worker roles, a mayor, and provider-agnostic capability tiers."
-
-# ── composed packs ─────────────────────────────────────────────────────
-# Pinned to the commits this configuration was exercised against. Move a
-# pin with `gc import upgrade`, not by hand.
-
-[imports.bd]
-source = "https://github.com/gastownhall/gascity/tree/main/examples/bd"
-version = "sha:f895c0ff47d6ee9334ed282a416387eb5b084d24"
-
-[imports.core]
-source = "https://github.com/gastownhall/gascity/tree/main/internal/bootstrap/packs/core"
-version = "sha:f895c0ff47d6ee9334ed282a416387eb5b084d24"
-
-[imports.gascity]
-source = "https://github.com/gastownhall/gascity-packs/tree/main/gascity"
-version = "sha:3b3b89f2011e06d84459aa7bea1552382f13930a"
-
-[imports.roles]
-source = "https://github.com/gastownhall/gascity-packs/tree/main/gascity/roles"
-version = "sha:3b3b89f2011e06d84459aa7bea1552382f13930a"
+description = "House style for a Gas City: provider-agnostic capability tiers and a mayor."
 
 # ── capability tiers ───────────────────────────────────────────────────
 # Four portable names, mapped per provider below.
@@ -59,8 +41,8 @@ version = "sha:3b3b89f2011e06d84459aa7bea1552382f13930a"
 # Terra, so there is no mid model to point standard at, and demoting it to
 # Luna would have put the workhorse agents on the high-volume model. Instead
 # the two tiers share GPT-6.1 Sol and differentiate on EFFORT, which the agent
-# patches below already set: standard agents run low or medium, deep agents
-# run high. OpenAI recommends 6.1 Sol over Astra for coding and agentic work
+# patches in packs/gc and packs/bd set: standard agents run low or medium,
+# deep agents run high. OpenAI recommends 6.1 Sol over Astra for coding and agentic work
 # on cost grounds, so the frontier tier stays the deliberate opt-in.
 #
 # Gemini reserves Gemini 4 Argon, its flagship reasoning model, for frontier
@@ -387,80 +369,12 @@ value = "max"
 label = "Max"
 
 # ── agent tiers ────────────────────────────────────────────────────────
-# The split is by the kind of work, not by how often the agent runs.
-# Agents that execute a defined procedure stay cheap. Agents that decide
-# what to build, or judge whether the result is acceptable, do not.
+# Each inherited pack tiers its own agents (see packs/gc and packs/bd). This
+# pack tiers only the agents it defines.
 
-# mechanical: polls, sweeps, routes. Nothing here forms a judgment.
-[[patches.agent]]
-name = "dog"
-option_defaults = { model = "light", effort = "low" }
-
-# Routing control beads is mechanical, but a wrong route stalls a run, so
-# it sits a tier above the dog.
-[[patches.agent]]
-name = "control-dispatcher"
-option_defaults = { model = "standard", effort = "low" }
-
-# Deterministic setup, validation, gates, metadata, finalization.
-[[patches.agent]]
-name = "run-operator"
-option_defaults = { model = "standard", effort = "low" }
-
-# Authorized pushes, PR creation, publication surfaces.
-[[patches.agent]]
-name = "publisher"
-option_defaults = { model = "standard", effort = "low" }
-
-# Classification against supplied evidence: bounded, but not clerical.
-[[patches.agent]]
-name = "issue-triager"
-option_defaults = { model = "standard", effort = "medium" }
-
-# judgment: these decide what the work is, how to build it, or whether the
-# result passes. A bad call here costs far more than the tokens saved.
+# judgment: decides what the work is and how to build it.
 [[patches.agent]]
 name = "mayor"
-option_defaults = { model = "deep", effort = "high" }
-
-[[patches.agent]]
-name = "task-decomposer"
-option_defaults = { model = "deep", effort = "high" }
-
-[[patches.agent]]
-name = "requirements-planner"
-option_defaults = { model = "deep", effort = "high" }
-
-[[patches.agent]]
-name = "design-author"
-option_defaults = { model = "deep", effort = "high" }
-
-[[patches.agent]]
-name = "design-implementation-reviewer"
-option_defaults = { model = "deep", effort = "high" }
-
-[[patches.agent]]
-name = "design-test-risk-reviewer"
-option_defaults = { model = "deep", effort = "high" }
-
-[[patches.agent]]
-name = "implementation-reviewer"
-option_defaults = { model = "deep", effort = "high" }
-
-# Finding what is absent is harder than checking what is present.
-[[patches.agent]]
-name = "gap-analyst"
-option_defaults = { model = "deep", effort = "high" }
-
-# Aggregates verdicts the reviewers already reasoned out, so it keeps the
-# deep tier for judgment but does not need the reviewers' effort budget.
-[[patches.agent]]
-name = "review-synthesizer"
-option_defaults = { model = "deep", effort = "medium" }
-
-# Writes the actual code, runs the tests, repairs CI.
-[[patches.agent]]
-name = "implementation-worker"
 option_defaults = { model = "deep", effort = "high" }
 
 # Scoped to the city for the same reason the mayor agent is: without it the

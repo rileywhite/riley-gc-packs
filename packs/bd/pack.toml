@@ -1,0 +1,35 @@
+# bd — the beads pack, with capability tiers for its agents.
+#
+# Inherits gc's bundled bd pack (beads on Dolt, plus its dolt maintenance
+# agents and orders) and assigns its agents a capability tier and effort. The
+# tier vocabulary comes from the provider blocks in the `house` pack, so a
+# city composes the two together.
+#
+# Import it at city scope and bind it as `bd`:
+#
+#   [imports.bd]
+#   source = "https://github.com/rileywhite/riley-gc-packs.git//packs/bd"
+#
+# `bd` is the binding gc init writes for the bundled pack, and gc requires the
+# bd pack to be reachable in any city whose beads provider is bd.
+
+[pack]
+name = "bd-tiered"
+version = "0.4.0"
+schema = 2
+description = "gc's bundled bd pack, with a capability tier for every agent."
+
+# ── inherited packs ────────────────────────────────────────────────────
+# The canonical pin gc 1.5 bundles. Move it with `gc import upgrade`, not by
+# hand.
+
+[imports.bd]
+source = "https://github.com/gastownhall/gascity/tree/main/examples/bd"
+version = "sha:f895c0ff47d6ee9334ed282a416387eb5b084d24"
+
+# ── agent tiers ────────────────────────────────────────────────────────
+
+# mechanical: polls, sweeps, routes. Nothing here forms a judgment.
+[[patches.agent]]
+name = "dog"
+option_defaults = { model = "light", effort = "low" }

@@ -1,0 +1,128 @@
+# gc — the public Gas City pack, with capability tiers for its agents.
+#
+# Inherits the gascity planning and implementation pack, its worker roles and
+# gc's own core pack, and assigns each of their agents a capability tier and
+# effort. It defines no tiers itself: the tier vocabulary (frontier, deep,
+# standard, light) comes from the provider blocks in the `house` pack, so a
+# city composes the two together.
+#
+# Import it at city scope and bind it as `gc`:
+#
+#   [imports.gc]
+#   source = "https://github.com/rileywhite/riley-gc-packs.git//packs/gc"
+#
+# `gc` is the binding the gascity pack is written against: its README installs
+# it with `gc import add --name gc`, its skills surface as `gc.<skill>`, and
+# `gc doctor` flags a city that binds it under any other key. Inside this pack
+# the upstream pack keeps that same binding.
+#
+# The worker roles are declared scope = "rig" upstream, so this one city-level
+# import expands them across every rig. No rig-level import is needed.
+
+[pack]
+name = "gc-tiered"
+version = "0.4.0"
+schema = 2
+description = "The public gascity pack, its worker roles and gc core, with a capability tier for every agent."
+
+# ── inherited packs ────────────────────────────────────────────────────
+# Move a pin with `gc import upgrade`, not by hand.
+#
+# gascity and its roles are pinned past the 0.1.6 release (3b3b89f), to the
+# last commit that touches gascity/ (d36950e, gascity-packs#194). gc 1.5 only
+# resolves formula check scripts written as `../assets/scripts/checks/<name>`;
+# 0.1.6 still writes `.gc/scripts/checks/<name>`, which nothing populates any
+# more, so every build-* artifact check fails with a hard
+# control_dispatch_error.
+
+[imports.gc]
+source = "https://github.com/gastownhall/gascity-packs/tree/main/gascity"
+version = "sha:d36950e53fc1f5475be7e5039842729dbf791ccf"
+
+[imports.roles]
+source = "https://github.com/gastownhall/gascity-packs/tree/main/gascity/roles"
+version = "sha:d36950e53fc1f5475be7e5039842729dbf791ccf"
+
+# gc's own builtin pack, at the canonical pin gc 1.5 bundles.
+[imports.core]
+source = "https://github.com/gastownhall/gascity/tree/main/internal/bootstrap/packs/core"
+version = "sha:f895c0ff47d6ee9334ed282a416387eb5b084d24"
+
+# ── agent tiers ────────────────────────────────────────────────────────
+# The split is by the kind of work, not by how often the agent runs.
+# Agents that execute a defined procedure stay cheap. Agents that decide
+# what to build, or judge whether the result is acceptable, do not.
+
+# Routing control beads is mechanical, but a wrong route stalls a run, so
+# it sits on the workhorse tier rather than light.
+[[patches.agent]]
+name = "control-dispatcher"
+option_defaults = { model = "standard", effort = "low" }
+
+# Deterministic setup, validation, gates, metadata, finalization.
+[[patches.agent]]
+name = "run-operator"
+option_defaults = { model = "standard", effort = "low" }
+
+# Authorized pushes, PR creation, publication surfaces.
+[[patches.agent]]
+name = "publisher"
+option_defaults = { model = "standard", effort = "low" }
+
+# Classification against supplied evidence: bounded, but not clerical.
+[[patches.agent]]
+name = "issue-triager"
+option_defaults = { model = "standard", effort = "medium" }
+
+# Compiles a feature into a fixed template and never invents decisions; gaps
+# become decision waits, so it needs care but not judgment.
+[[patches.agent]]
+name = "feature-refiner"
+option_defaults = { model = "standard", effort = "medium" }
+
+# judgment: these decide what the work is, how to build it, or whether the
+# result passes. A bad call here costs far more than the tokens saved.
+[[patches.agent]]
+name = "task-decomposer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "requirements-planner"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "design-author"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "design-implementation-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "design-test-risk-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "implementation-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+# Finding what is absent is harder than checking what is present.
+[[patches.agent]]
+name = "gap-analyst"
+option_defaults = { model = "deep", effort = "high" }
+
+# A quality gate whose uncertainty fails the gate: a pass/fail judgment.
+[[patches.agent]]
+name = "quality-judge"
+option_defaults = { model = "deep", effort = "high" }
+
+# Aggregates verdicts the reviewers already reasoned out, so it keeps the
+# deep tier for judgment but does not need the reviewers' effort budget.
+[[patches.agent]]
+name = "review-synthesizer"
+option_defaults = { model = "deep", effort = "medium" }
+
+# Writes the actual code, runs the tests, repairs CI.
+[[patches.agent]]
+name = "implementation-worker"
+option_defaults = { model = "deep", effort = "high" }

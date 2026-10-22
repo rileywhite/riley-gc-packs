@@ -1,12 +1,17 @@
-# basic
+# house
 
-One import that composes a working Gas City: the `bd`, `core`, `gascity` and
-`gascity/roles` packs, a mayor, and opinionated tuning that runs mechanical
-agents cheap and judgment agents expensive.
+House style for a Gas City. The shared layer a city composes next to the packs
+it inherits: the capability-tier vocabulary their agents select from, the
+city's mayor, and any ways of working the city wants on top of upstream.
+
+It imports no other pack. The packs it tunes, [`gc`](../gc) and [`bd`](../bd),
+each tier their own agents using the names defined here, so the three compose
+side by side and any of them can be swapped for another pack written the same
+way.
 
 No agent names a model. Agents select a capability tier, and each provider
-block maps that tier to its own model, so the same pack runs on Claude Code,
-Codex or Gemini without edits.
+block here maps that tier to its own model, so the same packs run on Claude
+Code, Codex or Gemini without edits.
 
 ## Install
 
@@ -14,32 +19,28 @@ In your city's `pack.toml`:
 
 ```toml
 [imports.gc]
-source = "https://github.com/rileywhite/riley-gc-packs.git//packs/basic"
+source = "https://github.com/rileywhite/riley-gc-packs.git//packs/gc"
+
+[imports.bd]
+source = "https://github.com/rileywhite/riley-gc-packs.git//packs/bd"
+
+[imports.house]
+source = "https://github.com/rileywhite/riley-gc-packs.git//packs/house"
 ```
 
-Then `gc import install`. That is the whole installation. Add rigs with
-`gc rig add <path>` and the worker agents attach to each one automatically.
+Then `gc import install`. Add rigs with `gc rig add <path>` and the worker
+agents attach to each one automatically.
 
-## Bind it as `gc`
+## Bindings
 
-The binding name is not cosmetic. A city-level binding overrides any nested
-one, so whatever you write becomes the visible prefix on every agent the
-pack contributes. Binding as `gc` gives `gc.mayor`, `gc.run-operator`,
-`gc.implementation-worker` and the rest, which is what the gascity formulas
-and the upstream documentation already assume. Bind it as something else and
-you rename your whole agent surface.
+A city-level binding becomes the visible prefix on every agent a pack
+contributes, so the keys above are not cosmetic:
 
-## How one import covers both agent scopes
-
-Gas City has city-scoped agents and rig-scoped agents. You might expect the
-rig-scoped ones to need their own import inside a rig block. They do not.
-Agents from a city-imported pack are expanded across every rig in the city
-and bound to that rig's working tree, unless the agent declares
-`scope = "city"`. The upstream worker agents declare `scope = "rig"`, so they
-land on your rigs from this single city-level import.
-
-The mayor here declares `scope = "city"` for the opposite reason: without it
-a copy would be created per rig, and a city wants exactly one mayor.
+- `gc` is the key the public gascity pack is written against. Its README
+  installs it with `gc import add --name gc`, its skills surface as
+  `gc.<skill>`, and `gc doctor` checks for it.
+- `bd` is the key gc init writes for its bundled beads pack.
+- `house` names this pack, so its mayor is `house.mayor`.
 
 ## Capability tiers
 
@@ -100,34 +101,43 @@ surface.
 
 ## What you get
 
-| Agent | Scope | Tier | Effort |
-|---|---|---|---|
-| dog | city | light | low |
-| control-dispatcher | both | standard | low |
-| run-operator | rig | standard | low |
-| publisher | rig | standard | low |
-| issue-triager | rig | standard | medium |
-| mayor | city | deep | high |
-| task-decomposer | rig | deep | high |
-| requirements-planner | rig | deep | high |
-| design-author | rig | deep | high |
-| design-implementation-reviewer | rig | deep | high |
-| design-test-risk-reviewer | rig | deep | high |
-| implementation-reviewer | rig | deep | high |
-| gap-analyst | rig | deep | high |
-| review-synthesizer | rig | deep | medium |
-| implementation-worker | rig | deep | high |
+| Agent | From | Scope | Tier | Effort |
+|---|---|---|---|---|
+| mayor | house | city | deep | high |
+| dog | bd | city | light | low |
+| control-dispatcher | gc | both | standard | low |
+| run-operator | gc | rig | standard | low |
+| publisher | gc | rig | standard | low |
+| issue-triager | gc | rig | standard | medium |
+| feature-refiner | gc | rig | standard | medium |
+| task-decomposer | gc | rig | deep | high |
+| requirements-planner | gc | rig | deep | high |
+| design-author | gc | rig | deep | high |
+| design-implementation-reviewer | gc | rig | deep | high |
+| design-test-risk-reviewer | gc | rig | deep | high |
+| implementation-reviewer | gc | rig | deep | high |
+| gap-analyst | gc | rig | deep | high |
+| quality-judge | gc | rig | deep | high |
+| review-synthesizer | gc | rig | deep | medium |
+| implementation-worker | gc | rig | deep | high |
 
 Anything unpatched falls through to the provider default of `standard` at
 medium effort.
 
 The split is by the kind of work, not by how often an agent runs. Agents that
 execute a defined procedure stay cheap. Agents that decide what to build, or
-judge whether the result is acceptable, do not. Two entries are worth calling
-out. `gap-analyst` sits in the judgment group because finding what is absent
-is harder than checking what is present. `review-synthesizer` keeps the deep
+judge whether the result is acceptable, do not. Three entries are worth
+calling out. `gap-analyst` sits in the judgment group because finding what is
+absent is harder than checking what is present. `quality-judge` does too,
+because its gate fails on uncertainty. `review-synthesizer` keeps the deep
 tier but drops to medium effort, because it aggregates verdicts the reviewers
 have already reasoned out.
+
+## The mayor
+
+The mayor declares `scope = "city"`. Agents from a city-imported pack are
+expanded across every rig unless they say otherwise, and a city wants exactly
+one mayor.
 
 ## What still belongs in your city.toml
 
@@ -160,11 +170,11 @@ option_defaults = { model = "frontier", effort = "max" }
 ```
 
 A patch with no `dir` targets the city-scoped copy, which is what you want for
-`gc.mayor` or `gc.dog`.
+`house.mayor` or `bd.dog`.
 
 ## If your rig has a single working tree
 
-This pack does not serialize implementation workers, because a rig using
+The `gc` pack does not serialize implementation workers, because a rig using
 per-session worktrees would get nothing but a bottleneck from it. If your rig
 is one checkout that every session shares, add this to your `city.toml` so
 concurrent workers cannot stomp each other's edits and git index:
@@ -175,10 +185,3 @@ dir = "my-repo"
 name = "gc.implementation-worker"
 max_active_sessions = 1
 ```
-
-## Version pins
-
-Composed packs are pinned to specific commits. Move a pin with
-`gc import upgrade`, never by editing `pack.toml` by hand. Note that the
-pinned `gascity/roles` predates its `feature-refiner` and `quality-judge`
-agents, so those two are not part of this release.
