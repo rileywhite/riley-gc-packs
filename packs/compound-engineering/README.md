@@ -21,14 +21,14 @@ tier names mean, and the compound formulas route work to gc's worker roles.
 ```toml
 [imports.compound-engineering]
 source = "https://github.com/rileywhite/riley-gc-packs.git//packs/compound-engineering"
-version = "0.7.2"
+version = "0.8.0"
 ```
 
 Then run `gc import install`.
 
-Importing it also makes it the city's primary workflow. The `house` mayor
-prefers compound-engineering's workflows whenever `compound-build` is in the
-catalog, so no city configuration is needed. See [house](../house).
+Importing it is all a city does to use it. The `house` mayor triages every
+piece of work and sends complex or risky work to `compound-build`, so no city
+configuration is needed. See [house](../house).
 
 ## Bind it as `compound-engineering`
 

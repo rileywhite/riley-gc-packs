@@ -160,15 +160,25 @@ The mayor declares `scope = "city"`. Agents from a city-imported pack are
 expanded across every rig unless they say otherwise, and a city wants exactly
 one mayor.
 
-The mayor also carries one workflow rule. When a city imports the
-[compound-engineering](../compound-engineering) pack, the mayor treats its
-workflows as the default: `compound-build` for new feature work, and
-compound's version of each stage in workflows that accept methodology
-selectors, such as `github-issue-fix` and `github-pr-review`. Builds and issue
-fixes are launched to publish, so each one ends with a pushed branch and an
-open pull request once its reviews pass. Workflows with no compound equivalent
-run as usual, and a workflow you name explicitly always wins. Importing the pack is therefore all a city does to make compound
-engineering its primary workflow; no city configuration is needed.
+The mayor also decides how work runs. Every piece of work, a single bug
+included, runs a full build that plans the work, does it, reviews it and opens
+a pull request. The mayor never uses `do-work` for real work, because it skips
+planning and review.
+
+Before launching, the mayor triages the bead to choose how broad the build
+should be:
+
+| Triage result | Build |
+|---|---|
+| Complex or risky: security, data, public APIs, concurrency, deployment, several components, unclear requirements, or a costly mistake | `compound-build`, when [compound-engineering](../compound-engineering) is installed |
+| Simple: well specified, localized, small blast radius | `build-basic` |
+| Unsure | `compound-build` |
+
+A city without compound-engineering runs `build-basic` for everything. The
+mayor records each decision on the bead, as `house.build` metadata and a
+`triage:` note with its reason, and launches the build to publish a pull
+request once its reviews pass. A workflow you name, or your own call that work
+is simple or complex, always wins.
 
 ## What still belongs in your city.toml
 
