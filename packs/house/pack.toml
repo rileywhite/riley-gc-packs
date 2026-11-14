@@ -23,54 +23,56 @@
 
 [pack]
 name = "house"
-version = "0.4.0"
+version = "0.5.0"
 schema = 2
 description = "House style for a Gas City: provider-agnostic capability tiers and a mayor."
 
 # ── capability tiers ───────────────────────────────────────────────────
 # Four portable names, mapped per provider below.
 #
-#   frontier  the specialist top end     fable-5.1 / gpt-6-astra  / 4-argon
-#   deep      heavyweight reasoning      opus-5.5  / gpt-6.1-sol  / 3.8-flash
-#   standard  the workhorse              sonnet-5.5/ gpt-6.1-sol  / 3.8-flash
-#   light     cheap and quick            haiku-5.5 / gpt-6-luna   / 3.5-flash-lite
+#   frontier  the specialist top end     fable-5.2 / gpt-6-astra   / 3.1-pro-preview
+#   deep      heavyweight reasoning      opus-5.5  / gpt-6.1-sol   / 3.8-flash
+#   standard  the workhorse              sonnet-5.5/ gpt-6.1-terra / 3.8-flash
+#   light     cheap and quick            haiku-5.5 / gpt-6-luna    / 3.5-flash-lite
 #
-# Model ids are current as of 2026-10-20.
+# Model ids are current as of 2026-11-14.
 #
-# Codex deliberately maps deep AND standard to the same model. GPT-6 has no
-# Terra, so there is no mid model to point standard at, and demoting it to
-# Luna would have put the workhorse agents on the high-volume model. Instead
-# the two tiers share GPT-6.1 Sol and differentiate on EFFORT, which the agent
-# patches in packs/gc and packs/bd set: standard agents run low or medium,
-# deep agents run high. OpenAI recommends 6.1 Sol over Astra for coding and agentic work
-# on cost grounds, so the frontier tier stays the deliberate opt-in.
+# Codex has a distinct model per tier again. GPT-6.1 Terra restores a mid
+# model for standard; earlier versions shared GPT-6.1 Sol between deep and
+# standard because no Terra existed in the GPT-6 family. OpenAI positions
+# Terra for writing, visual understanding and computer use rather than coding,
+# so it suits the publisher's PR writing better than the dispatcher's routing.
+# Terra needs Codex CLI 0.159.0 or later.
 #
-# Gemini reserves Gemini 4 Argon, its flagship reasoning model, for frontier
-# only, and runs deep and standard on 3.8 Flash, which Google builds for
-# long-horizon software engineering. Light drops to 3.5 Flash-Lite, the
-# high-throughput option; Google names those two Flash models together as its
-# current pair for new projects. Argon being stable also retires this pack's
-# long-standing caveat that Gemini had no stable top model.
+# Gemini maps only to models Gemini CLI documents. Google says Gemini CLI "has
+# not been optimized for Gemini 4" and points Gemini 4 users to Antigravity
+# CLI, and no Gemini CLI page confirms the Gemini 4 models work there. So the
+# Gemini 4 family (Carbon, Argon, Hydrogen) is kept as passthrough values a
+# city can pin, but no tier resolves to it. Frontier falls back to 3.1 Pro,
+# still a preview endpoint. Revisit when Gemini CLI documents Gemini 4.
 #
 # NOTE the asymmetry: on Gemini, deep and standard resolve to the same model
-# AND effort is inert there, so those two tiers behave identically. Codex gets
-# away with sharing a model because effort still separates its tiers. Under
+# AND effort is inert there, so those two tiers behave identically. Under
 # Gemini, raising an agent from standard to deep changes nothing - move it to
 # frontier to get more capability.
 #
-# frontier still carries an external version requirement: a Codex CLI new
-# enough for GPT-6 Astra.
+# frontier carries an external version requirement on Codex: a CLI new enough
+# for GPT-6 Astra.
 #
 # Nothing is mapped to `frontier` yet; it exists so a city can opt one agent
 # up without inventing vocabulary.
 #
-# Effort uses one vocabulary too: low, medium, high, xhigh, max. Codex tops
-# out at xhigh and clamps max onto it — gpt-6-astra itself accepts max, but
-# the effort option is provider-wide and gpt-5.6-terra and luna are not,
-# so the clamp holds to the weakest model in the set. Gemini CLI has no
-# reasoning-effort
-# control at all, so the option is declared but inert there — declaring it
-# keeps a portable agent config from failing to load under Gemini.
+# Effort uses one vocabulary too: low, medium, high, xhigh, max. Every level
+# now maps to a real setting on Claude Code and Codex; Codex previously clamped
+# max onto xhigh, but max is a real Codex level on every GPT-6 model, Luna
+# included. Codex also has an "ultra" level above max, which this vocabulary
+# deliberately does not expose: it fans work out to subagents rather than
+# reasoning harder, Luna rejects it, and neither other provider has an
+# equivalent, so a portable agent config set to ultra would break elsewhere.
+#
+# Gemini CLI has no per-invocation thinking control: its thinking level lives
+# only in settings.json model configs. The option is declared but inert there,
+# which keeps a portable agent config from failing to load under Gemini.
 #
 # There is deliberately NO speed/fast-mode option. No CLI among the three
 # exposes one: Claude Code has no --fast flag, Codex expresses speed only
@@ -97,7 +99,7 @@ default = "standard"
 [[providers.claude.options_schema.choices]]
 value = "frontier"
 label = "Frontier"
-flag_args = ["--model", "claude-fable-5-1"]
+flag_args = ["--model", "claude-fable-5-2"]
 
 [[providers.claude.options_schema.choices]]
 value = "deep"
@@ -115,6 +117,11 @@ label = "Light"
 flag_args = ["--model", "claude-haiku-5-5"]
 
 # passthrough: pin an exact model instead of a tier
+
+[[providers.claude.options_schema.choices]]
+value = "fable-5-2"
+label = "Fable 5.2"
+flag_args = ["--model", "claude-fable-5-2"]
 
 [[providers.claude.options_schema.choices]]
 value = "fable-5-1"
@@ -220,7 +227,7 @@ flag_args = ["--model", "gpt-6.1-sol"]
 [[providers.codex.options_schema.choices]]
 value = "standard"
 label = "Standard"
-flag_args = ["--model", "gpt-6.1-sol"]
+flag_args = ["--model", "gpt-6.1-terra"]
 
 [[providers.codex.options_schema.choices]]
 value = "light"
@@ -243,6 +250,11 @@ flag_args = ["--model", "gpt-6.1-sol"]
 value = "gpt-6-sol"
 label = "GPT-6 Sol"
 flag_args = ["--model", "gpt-6-sol"]
+
+[[providers.codex.options_schema.choices]]
+value = "gpt-6.1-terra"
+label = "GPT-6.1 Terra"
+flag_args = ["--model", "gpt-6.1-terra"]
 
 [[providers.codex.options_schema.choices]]
 value = "gpt-6-luna"
@@ -278,7 +290,7 @@ flag_args = ["-c", "model_reasoning_effort=xhigh"]
 [[providers.codex.options_schema.choices]]
 value = "max"
 label = "Max"
-flag_args = ["-c", "model_reasoning_effort=xhigh"]
+flag_args = ["-c", "model_reasoning_effort=max"]
 
 # ── gemini ─────────────────────────────────────────
 [providers.gemini]
@@ -298,7 +310,7 @@ default = "standard"
 [[providers.gemini.options_schema.choices]]
 value = "frontier"
 label = "Frontier"
-flag_args = ["--model", "gemini-4-argon"]
+flag_args = ["--model", "gemini-3.1-pro-preview"]
 
 [[providers.gemini.options_schema.choices]]
 value = "deep"
@@ -318,9 +330,19 @@ flag_args = ["--model", "gemini-3.5-flash-lite"]
 # passthrough: pin an exact model instead of a tier
 
 [[providers.gemini.options_schema.choices]]
+value = "gemini-4-carbon"
+label = "Gemini 4 Carbon"
+flag_args = ["--model", "gemini-4-carbon"]
+
+[[providers.gemini.options_schema.choices]]
 value = "gemini-4-argon"
 label = "Gemini 4 Argon"
 flag_args = ["--model", "gemini-4-argon"]
+
+[[providers.gemini.options_schema.choices]]
+value = "gemini-4-hydrogen"
+label = "Gemini 4 Hydrogen"
+flag_args = ["--model", "gemini-4-hydrogen"]
 
 [[providers.gemini.options_schema.choices]]
 value = "gemini-3.1-pro-preview"

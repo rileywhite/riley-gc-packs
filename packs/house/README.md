@@ -44,41 +44,37 @@ contributes, so the keys above are not cosmetic:
 
 ## Capability tiers
 
-Four portable names replace hardcoded model ids. Current as of 2026-10-20.
+Four portable names replace hardcoded model ids. Current as of 2026-11-14.
 
 | Tier | Claude | Codex | Gemini |
 |---|---|---|---|
-| frontier | claude-fable-5-1 | gpt-6-astra | gemini-4-argon |
+| frontier | claude-fable-5-2 | gpt-6-astra | gemini-3.1-pro-preview |
 | deep | claude-opus-5-5 | gpt-6.1-sol | gemini-3.8-flash |
-| standard | claude-sonnet-5-5 | gpt-6.1-sol | gemini-3.8-flash |
+| standard | claude-sonnet-5-5 | gpt-6.1-terra | gemini-3.8-flash |
 | light | claude-haiku-5-5 | gpt-6-luna | gemini-3.5-flash-lite |
 
-Nothing is mapped to `frontier` yet. It exists so a city can raise one agent
-without inventing vocabulary.
+Nothing in these packs is mapped to `frontier`. It exists so a city can raise
+one agent without inventing vocabulary.
 
-Codex maps deep and standard to the same model on purpose. GPT-6 has no Terra,
-so there is no mid model for standard, and demoting it to Luna would put the
-workhorse agents on the high-volume model. The two tiers share GPT-6.1 Sol and
-differentiate on effort instead, which the agent table below already does:
-standard agents run low or medium, deep agents run high. OpenAI recommends 6.1
-Sol over Astra for coding and agentic work on cost grounds, so frontier stays a
-deliberate opt-in.
+Codex has a distinct model per tier again. GPT-6.1 Terra restores a mid model
+for standard; earlier versions shared GPT-6.1 Sol between deep and standard
+because the GPT-6 family had no Terra. OpenAI positions Terra for writing,
+visual understanding and computer use rather than coding. Terra needs Codex CLI
+0.159.0 or later.
 
-Gemini reserves Gemini 4 Argon, its flagship reasoning model, for frontier only.
-Deep and standard both run 3.8 Flash, which Google builds for long-horizon
-software engineering, and light drops to 3.5 Flash-Lite for high-throughput
-work. Google names those two Flash models together as its current pair for new
-projects. Argon being stable also retires this pack's long-standing caveat that
-Gemini had no stable top model.
+Gemini maps only to models Gemini CLI documents. Google says Gemini CLI "has
+not been optimized for Gemini 4" and points Gemini 4 users to Antigravity CLI,
+and no Gemini CLI page confirms the Gemini 4 models work there. The Gemini 4
+family, Carbon, Argon and Hydrogen, stays available as passthrough values a
+city can pin, but no tier resolves to it. Frontier falls back to 3.1 Pro, still
+a preview endpoint. This is worth revisiting once Gemini CLI documents Gemini 4.
 
 One asymmetry is worth knowing. On Gemini, deep and standard resolve to the same
-model, and effort is inert there, so those two tiers behave identically. Codex
-gets away with sharing a model because effort still separates its tiers. Under
+model, and effort is inert there, so those two tiers behave identically. Under
 Gemini, raising an agent from standard to deep changes nothing; move it to
 frontier to get more capability.
 
-The frontier tier still carries one external requirement: a Codex CLI new enough
-for GPT-6 Astra.
+On Codex, the frontier tier needs a CLI new enough for GPT-6 Astra.
 
 Each provider also keeps its current models as passthrough choices, so a
 city can pin an exact model instead of a tier. Retired models are not
@@ -86,18 +82,24 @@ carried: Claude's 4.x generation, the whole Codex 5.x line (gpt-5.6-sol,
 gpt-5.6-terra, gpt-5.6-luna, gpt-5.5, gpt-5.4 and gpt-5.3-codex-spark), and
 Gemini's 2.5 line are all omitted.
 
-Effort shares one vocabulary: `low`, `medium`, `high`, `xhigh`, `max`. Codex
-clamps `max` onto `xhigh`. Astra accepts `max`, but the effort option is
-provider-wide and Sol and Luna are not confirmed to, so the clamp holds to the
-weakest model in the set. Gemini CLI has no reasoning effort control at all,
-so the option is declared but inert there. Declaring it anyway is deliberate,
-because it keeps a portable agent config from failing to load under Gemini.
+Effort shares one vocabulary: `low`, `medium`, `high`, `xhigh`, `max`. Every
+level maps to a real setting on Claude Code and Codex. Codex used to clamp
+`max` onto `xhigh`, but `max` is now a real level on every GPT-6 model.
 
-There is no speed or fast-mode option. None of the three CLIs exposes one.
-Claude Code has no fast flag, and Codex and Gemini express speed only through
-model choice. A declared-but-inert speed control would look like a setting
-and silently do nothing, so it is left out until a provider gives it a real
-surface.
+Codex also offers `ultra` above `max`, which this vocabulary does not expose.
+Ultra fans the work out to subagents rather than reasoning harder, Luna rejects
+it, and neither other provider has an equivalent, so a portable agent config set
+to `ultra` would break on the others.
+
+Gemini CLI has no per-invocation thinking control; its thinking level lives only
+in `settings.json` model configs. The effort option is declared but inert there.
+Declaring it anyway is deliberate, because it keeps a portable agent config
+from failing to load under Gemini.
+
+There is no speed or fast-mode option. Codex now has a config-level Fast mode,
+but Claude Code exposes no fast flag and Gemini CLI has none either. A portable
+speed option would silently do nothing on two of the three providers, so it is
+left out until they all give it a real surface.
 
 ## What you get
 
@@ -119,7 +121,7 @@ surface.
 | gap-analyst | gc | rig | deep | high |
 | quality-judge | gc | rig | deep | high |
 | review-synthesizer | gc | rig | deep | medium |
-| implementation-worker | gc | rig | deep | high |
+| implementation-worker | gc | rig | deep | xhigh |
 
 Anything unpatched falls through to the provider default of `standard` at
 medium effort.

@@ -21,7 +21,7 @@
 
 [pack]
 name = "gc-tiered"
-version = "0.4.0"
+version = "0.5.0"
 schema = 2
 description = "The public gascity pack, its worker roles and gc core, with a capability tier for every agent."
 
@@ -122,7 +122,11 @@ option_defaults = { model = "deep", effort = "high" }
 name = "review-synthesizer"
 option_defaults = { model = "deep", effort = "medium" }
 
-# Writes the actual code, runs the tests, repairs CI.
+# Writes the actual code, runs the tests, repairs CI. The one agent that is
+# both high-volume and judgment-heavy, and the one whose mistakes fan out into
+# every reviewer. xhigh follows Anthropic's effort guidance for "long-running
+# agentic and coding tasks (over 30 minutes) with token budgets in the
+# millions", which is this workload exactly.
 [[patches.agent]]
 name = "implementation-worker"
-option_defaults = { model = "deep", effort = "high" }
+option_defaults = { model = "deep", effort = "xhigh" }
