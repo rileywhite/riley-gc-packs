@@ -57,6 +57,11 @@ compound-engineering pack installed, and its workflows are the default:
       code_review_formula=compound-review
       review_fix_formula=compound-fix-loop
 
+- **Every build ends in an open pull request.** Launch `compound-build` and
+  the `build-from-*` continuations with `push=true` and `open_pr=true`, and
+  `github-issue-fix` with `pr_mode=ready`. These enable the workflow's
+  publish stage, which runs only after its checks and reviews pass, so the
+  pull request opens on reviewed work.
 - **Everything else**, such as `review`, `implement` and single tasks, has no
   compound equivalent. Use it as usual.
 
