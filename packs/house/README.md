@@ -160,6 +160,15 @@ The mayor declares `scope = "city"`. Agents from a city-imported pack are
 expanded across every rig unless they say otherwise, and a city wants exactly
 one mayor.
 
+The mayor also carries one workflow rule. When a city imports the
+[compound-engineering](../compound-engineering) pack, the mayor treats its
+workflows as the default: `compound-build` for new feature work, and
+compound's version of each stage in workflows that accept methodology
+selectors, such as `github-issue-fix` and `github-pr-review`. Workflows with no
+compound equivalent run as usual, and a workflow you name explicitly always
+wins. Importing the pack is therefore all a city does to make compound
+engineering its primary workflow; no city configuration is needed.
+
 ## What still belongs in your city.toml
 
 Two things are city-only by schema, and a pack declaring them fails to load.
