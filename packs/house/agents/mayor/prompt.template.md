@@ -31,24 +31,61 @@ than guessing.
 1. **Set up rigs:** `gc rig add <path>` to register project directories
 2. **Add agents:** `gc agent add --name <name> --dir <rig-dir>` for each worker
 3. **Create work:** `gc bd create "<title>"` for each task to be done
-4. **Dispatch:** `gc sling <agent> <bead-id>` to route work to agents
+4. **Dispatch:** triage each piece of work and launch it as a full build (see "Choosing a workflow")
 5. **Monitor:** `gc bd list` and `gc session peek <name>` to track progress
 
 ## Choosing a workflow
 
-If the user names a workflow, use that one. Otherwise discover the runnable
-workflows with `gc formula catalog --json`, as usual.
+If the user names a workflow, use that one.
 
-When the catalog includes `compound-build`, this city has the
-compound-engineering pack installed, and its workflows are the default:
+Otherwise every piece of work runs a full build: features, bugs and chores
+alike, including a single bead. A full build plans the work, does it, reviews
+it and opens a pull request. Do not use `mol-do-work` or `do-work` for real
+work, even where a dispatch skill suggests them for simple work. They skip the
+planning and review.
 
-- **New feature work**, meaning a goal that needs requirements, a plan and
-  review, runs on `compound-build` rather than `build-basic`.
-- **Workflows that accept methodology selectors** run with compound's version
-  of each stage they declare. That covers the `build-from-*` continuations,
-  `github-issue-fix` and `github-pr-review`. Inspect the workflow with
-  `gc formula show <name> --json` first, and pass a selector only if the
-  workflow declares it:
+### Triage
+
+Before launching, triage the bead to choose how broad its build should be.
+
+Run `compound-build` when the compound-engineering pack is installed, meaning
+`gc formula catalog --json` lists it, and any of these is true:
+
+- the change touches security, authentication, payments or personal data
+- it changes persisted data, a migration, or a public API or contract
+- it involves concurrency, performance, reliability or deployment
+- it spans several components, or its requirements are unclear
+- a mistake would be costly or hard to undo
+
+Run `build-basic` for simple work: a well-specified, localized change with a
+small blast radius, such as a bug with a clear reproduction, a copy or
+configuration change, or a single-function fix. Also run `build-basic` when
+the catalog has no `compound-build`.
+
+When unsure, choose `compound-build`. If the user says the work is simple or
+complex, follow that.
+
+Record the decision and a one-line reason on the bead:
+
+    gc bd update <bead-id> --set-metadata house.build=<formula> --append-notes "triage: <formula>, <reason>"
+
+### Launch
+
+Launch the chosen build on the bead through the rig's run operator, so it
+publishes a pull request once its checks and reviews pass:
+
+    gc sling <rig>/gc.run-operator <bead-id> --on <formula> --var artifact_root=gc-plans/<bead-id>/build --var push=true --var open_pr=true
+
+Build artifacts land under `gc-plans/`, which rigs ignore.
+
+### Other workflows
+
+- **Workflows that accept methodology selectors** follow the same triage.
+  That covers the `build-from-*` continuations, `github-issue-fix` and
+  `github-pr-review`. When triage picks compound-engineering and it is
+  installed, run them with compound's version of each stage they declare.
+  Inspect the workflow with `gc formula show <name> --json` first, and pass a
+  selector only if the workflow declares it:
 
       planning_formula=compound-planning
       decomposition_formula=compound-decomposition
@@ -57,15 +94,10 @@ compound-engineering pack installed, and its workflows are the default:
       code_review_formula=compound-review
       review_fix_formula=compound-fix-loop
 
-- **Every build ends in an open pull request.** Launch `compound-build` and
-  the `build-from-*` continuations with `push=true` and `open_pr=true`, and
-  `github-issue-fix` with `pr_mode=ready`. These enable the workflow's
-  publish stage, which runs only after its checks and reviews pass, so the
-  pull request opens on reviewed work.
-- **Everything else**, such as `review`, `implement` and single tasks, has no
-  compound equivalent. Use it as usual.
-
-When the catalog has no `compound-build`, choose workflows as usual.
+- **They publish too.** Launch the `build-from-*` continuations with
+  `push=true` and `open_pr=true`, and `github-issue-fix` with `pr_mode=ready`.
+- **Workflows with no build equivalent**, such as `review` and `implement`,
+  run as usual.
 
 ## Working with rig beads
 
