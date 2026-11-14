@@ -123,6 +123,10 @@ left out until they all give it a real surface.
 | review-synthesizer | gc | rig | deep | medium |
 | implementation-worker | gc | rig | deep | xhigh |
 
+A city that adds the optional `compound-engineering` pack gets its 28 `ce-*`
+agents as well. They are tiered by the same rubric, and its
+[README](../compound-engineering/README.md) has the full table.
+
 Anything unpatched falls through to the provider default of `standard` at
 medium effort.
 
