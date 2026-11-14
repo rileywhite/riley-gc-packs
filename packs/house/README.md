@@ -164,9 +164,10 @@ The mayor also carries one workflow rule. When a city imports the
 [compound-engineering](../compound-engineering) pack, the mayor treats its
 workflows as the default: `compound-build` for new feature work, and
 compound's version of each stage in workflows that accept methodology
-selectors, such as `github-issue-fix` and `github-pr-review`. Workflows with no
-compound equivalent run as usual, and a workflow you name explicitly always
-wins. Importing the pack is therefore all a city does to make compound
+selectors, such as `github-issue-fix` and `github-pr-review`. Builds and issue
+fixes are launched to publish, so each one ends with a pushed branch and an
+open pull request once its reviews pass. Workflows with no compound equivalent
+run as usual, and a workflow you name explicitly always wins. Importing the pack is therefore all a city does to make compound
 engineering its primary workflow; no city configuration is needed.
 
 ## What still belongs in your city.toml
