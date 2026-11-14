@@ -21,7 +21,7 @@ tier names mean, and the compound formulas route work to gc's worker roles.
 ```toml
 [imports.compound-engineering]
 source = "https://github.com/rileywhite/riley-gc-packs.git//packs/compound-engineering"
-version = "0.6.0"
+version = "0.7.0"
 ```
 
 Then run `gc import install`.
@@ -33,14 +33,23 @@ the planner and the implementer to `compound-engineering.ce-*` by name. Bind
 the pack under any other key, `ce` included, and all 28 routes point at agents
 that don't exist.
 
-## One gascity in the city
+## One gascity, one set of roles
 
 Upstream compound-engineering imports gascity itself, by a relative path, so
 its gascity resolves at whatever commit this pack pins. The pin matches the
-gascity commit in the `gc` pack (`d36950e`), which keeps a single gascity in
-the city. compound-engineering has not changed upstream since that commit, so
-this is also the current upstream pack. Move the `gc` and
-`compound-engineering` pins together.
+gascity commit in the `gc` pack (`0f07496`), which keeps a single gascity in
+the city. Always move the `gc` and `compound-engineering` pins together.
+
+The compound formulas also route work to five of gc's worker roles:
+`run-operator`, `publisher`, `task-decomposer`, `implementation-reviewer` and
+`review-synthesizer`. Upstream compound-engineering brings gascity's formulas
+but none of its agents, so those roles come only from the `gc` pack, carrying
+its tiers. This was checked in a test city: each route lands on exactly one
+agent, with the `gc` pack's tier and effort.
+
+**Don't also import `gascity/roles` yourself.** Upstream's README tells you to
+add it at rig scope. With this pack set, that would create a second, untiered
+copy of every worker role alongside the tiered one.
 
 ## Run a build
 
@@ -54,53 +63,59 @@ gc sling gc.run-operator <bead-id> --on compound-build --var artifact_root=gc-pl
 
 ## Agent tiers
 
-The rubric is the same as `gc`'s: agents that decide what to build, or judge
-whether the result is acceptable, sit on the judgment tier. Compound
-Engineering's fan-out forces one extra distinction, between review lanes
-that catch defects and lanes about hygiene. A missed defect ships a bug; a
-missed style note doesn't. With up to 17 lanes per pass and up to 8 passes,
-that distinction is what keeps a build affordable.
+Each tier names the kind of agent it's for; see [house](../house) for the
+vocabulary. Compound Engineering's fan-out runs up to 17 review lanes per pass
+and up to 8 passes, so effort carries as much weight here as the tier.
 
 | Agent | Role | Tier | Effort |
 |---|---|---|---|
-| ce-brainstorm | requirements | deep | high |
-| ce-plan | planning, applies plan findings | deep | high |
-| ce-architecture-strategist | plan review | deep | high |
-| ce-coherence-reviewer | plan review | deep | high |
-| ce-feasibility-reviewer | plan review | deep | high |
-| ce-scope-guardian-reviewer | plan review | deep | high |
-| ce-work | implementation, applies review fixes | deep | xhigh |
-| ce-correctness-reviewer | defect lane, always on | deep | high |
-| ce-testing-reviewer | defect lane, always on | deep | high |
-| ce-security-reviewer | defect lane | deep | high |
-| ce-reliability-reviewer | defect lane | deep | high |
-| ce-performance-reviewer | defect lane | deep | high |
-| ce-data-migration-reviewer | defect lane | deep | high |
-| ce-api-contract-reviewer | defect lane | deep | high |
-| ce-adversarial-reviewer | defect lane | deep | high |
-| ce-julik-frontend-races-reviewer | defect lane | deep | high |
-| ce-swift-ios-reviewer | defect lane | deep | high |
-| ce-deployment-verification-agent | defect lane | deep | high |
-| ce-maintainability-reviewer | hygiene lane, always on | standard | medium |
-| ce-project-standards-reviewer | hygiene lane, always on | standard | medium |
-| ce-agent-native-reviewer | hygiene lane, always on | standard | medium |
-| ce-previous-comments-reviewer | history lane | standard | medium |
-| ce-code-review-selector | chooses conditional lanes | standard | medium |
-| ce-learnings-researcher | retrieves past findings | standard | medium |
-| ce-plan-review-synthesizer | synthesis | deep | medium |
-| ce-code-review-synthesizer | synthesis | deep | medium |
-| ce-pr-comment-resolver | resolution | deep | medium |
-| ce-compound | distills learnings | deep | medium |
+| ce-brainstorm | requirements, interactive | principal | medium |
+| ce-plan | planning, interactive | principal | medium |
+| ce-architecture-strategist | plan review: architecture | principal | high |
+| ce-coherence-reviewer | plan review | engineer | high |
+| ce-feasibility-reviewer | plan review | engineer | high |
+| ce-scope-guardian-reviewer | plan review | engineer | high |
+| ce-work | implementation, applies review fixes | engineer | xhigh |
+| ce-correctness-reviewer | defect lane, always on | engineer | high |
+| ce-testing-reviewer | defect lane, always on | engineer | high |
+| ce-security-reviewer | defect lane | engineer | high |
+| ce-reliability-reviewer | defect lane | engineer | high |
+| ce-performance-reviewer | defect lane | engineer | high |
+| ce-data-migration-reviewer | defect lane | engineer | high |
+| ce-api-contract-reviewer | defect lane | engineer | high |
+| ce-adversarial-reviewer | defect lane | engineer | high |
+| ce-julik-frontend-races-reviewer | defect lane | engineer | high |
+| ce-swift-ios-reviewer | defect lane | engineer | high |
+| ce-deployment-verification-agent | defect lane | engineer | high |
+| ce-maintainability-reviewer | design-quality lane, always on | engineer | medium |
+| ce-agent-native-reviewer | design-quality lane, always on | engineer | medium |
+| ce-plan-review-synthesizer | synthesis | engineer | medium |
+| ce-code-review-synthesizer | synthesis | engineer | medium |
+| ce-pr-comment-resolver | resolution | engineer | medium |
+| ce-compound | distills learnings | engineer | medium |
+| ce-project-standards-reviewer | checks written conventions, always on | operator | medium |
+| ce-previous-comments-reviewer | checks earlier comments | operator | medium |
+| ce-code-review-selector | chooses conditional lanes | operator | medium |
+| ce-learnings-researcher | retrieves past findings | operator | medium |
 
-Three choices are worth knowing:
+The choices worth knowing:
 
-- **ce-work matches gc's implementation-worker** at deep and `xhigh`. It does
-  the same job, writing each item and applying review fixes.
-- **The selector stays off light.** Upstream calls it a cheap gate, but a
-  wrong skip silently drops a lane such as security, the same reasoning `gc`
-  uses for its control dispatcher.
-- **Synthesizers run at medium** on the judgment tier. They consolidate
-  verdicts the lanes already reasoned out, matching gc's review-synthesizer.
+- **The planner, brainstormer and architecture strategist are principals.**
+  They decide what gets built and its structure, and they run once per build or
+  once per plan-review pass, which keeps the top tier affordable.
+- **The interactive principals run at medium.** In interactive mode the
+  brainstormer and planner ask you questions. Top-tier models think longer per
+  turn and take more initiative, so medium keeps the pauses short and the
+  questions on what you asked. The scope guardian also reviews every plan for
+  scope creep.
+- **ce-work matches gc's implementation-worker** as an engineer at `xhigh`.
+- **Review lanes split by kind, not cost.** Defect lanes and design-quality
+  lanes are engineers, because both are judgment calls. Design-quality lanes
+  run at medium, since a miss costs design debt rather than a bug. Lanes that
+  check the change against something already written down, project
+  conventions or earlier comments, are operators.
+- **The selector is an operator, not a custodian.** Upstream calls it a cheap
+  gate, but a wrong skip silently drops a lane such as security.
 
 To change any agent for your city, patch it from `city.toml` by its
 binding-qualified name, for example `compound-engineering.ce-security-reviewer`.

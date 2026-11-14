@@ -15,21 +15,21 @@
 
 [pack]
 name = "bd-tiered"
-version = "0.6.0"
+version = "0.7.0"
 schema = 2
 description = "gc's bundled bd pack, with a capability tier for every agent."
 
 # ── inherited packs ────────────────────────────────────────────────────
-# The canonical pin gc 1.5 bundles. Move it with `gc import upgrade`, not by
-# hand.
+# The commit gc 1.5.1 bundles and writes on init. Move it with
+# `gc import upgrade`, not by hand.
 
 [imports.bd]
 source = "https://github.com/gastownhall/gascity/tree/main/examples/bd"
-version = "sha:f895c0ff47d6ee9334ed282a416387eb5b084d24"
+version = "sha:2e643dc2eb5ff84d9853ecaa6961a87a8e4043ae"
 
 # ── agent tiers ────────────────────────────────────────────────────────
 
 # mechanical: polls, sweeps, routes. Nothing here forms a judgment.
 [[patches.agent]]
 name = "dog"
-option_defaults = { model = "light", effort = "low" }
+option_defaults = { model = "custodian", effort = "low" }

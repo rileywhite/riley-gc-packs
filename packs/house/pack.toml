@@ -16,51 +16,58 @@
 #   [imports.house]
 #   source = "https://github.com/rileywhite/riley-gc-packs.git//packs/house"
 #
-# PROVIDER AGNOSTIC. No agent names a model. Agents select a tier — frontier,
-# deep, standard or light — which each provider block maps to its own model.
+# PROVIDER AGNOSTIC. No agent names a model. Agents select a tier — principal,
+# engineer, operator or custodian — which each provider block maps to its own
+# model.
 # The same packs therefore run on Claude Code, Codex or Gemini without edits,
 # and a city that switches providers keeps its cost shape.
 
 [pack]
 name = "house"
-version = "0.6.0"
+version = "0.7.0"
 schema = 2
 description = "House style for a Gas City: provider-agnostic capability tiers and a mayor."
 
 # ── capability tiers ───────────────────────────────────────────────────
-# Four portable names, mapped per provider below.
+# Four portable names, mapped per provider below. Each names the kind of agent
+# the tier is for, so a new agent is placed by asking what kind of agent it
+# is, not how big a model it needs.
 #
-#   frontier  the specialist top end     fable-5.2 / gpt-6-astra   / 3.1-pro-preview
-#   deep      heavyweight reasoning      opus-5.5  / gpt-6.1-sol   / 3.8-flash
-#   standard  the workhorse              sonnet-5.5/ gpt-6.1-terra / 3.8-flash
-#   light     cheap and quick            haiku-5.5 / gpt-6-luna    / 3.5-flash-lite
+#   principal  sets the direction everything     fable-5.2  / gpt-6-astra   / 3.1-pro-preview
+#              downstream builds on
+#   engineer   plans, builds and reviews work    opus-5.5   / gpt-6.1-sol   / 3.8-flash
+#   operator   runs a defined procedure          sonnet-5.5 / gpt-6.1-terra / 3.8-flash
+#   custodian  keeps things running unattended   haiku-5.5  / gpt-6-luna    / 3.5-flash-lite
 #
 # Model ids are current as of 2026-11-14.
 #
-# Codex has a distinct model per tier again. GPT-6.1 Terra restores a mid
-# model for standard; earlier versions shared GPT-6.1 Sol between deep and
-# standard because no Terra existed in the GPT-6 family. OpenAI positions
-# Terra for writing, visual understanding and computer use rather than coding,
-# so it suits the publisher's PR writing better than the dispatcher's routing.
-# Terra needs Codex CLI 0.159.0 or later.
+# A principal is an agent whose output everything downstream implements and
+# which runs rarely, typically once per build. Both conditions matter: the
+# first makes its mistakes the most expensive, and the second keeps the top
+# tier affordable. Principals that work with a person in the loop run at
+# medium effort, because top-tier models think longer per turn and take more
+# initiative.
+#
+# The pre-0.7.0 names frontier, deep, standard and light are kept for one
+# release as deprecated aliases resolving to the same models, so existing
+# city patches keep working.
+#
+# Codex has a distinct model per tier. OpenAI positions GPT-6.1 Terra for
+# writing, visual understanding and computer use rather than coding, so it
+# suits the publisher's PR writing better than the dispatcher's routing.
+# Terra needs Codex CLI 0.159.0 or later; principal needs a CLI new enough for
+# GPT-6 Astra.
 #
 # Gemini maps only to models Gemini CLI documents. Google says Gemini CLI "has
 # not been optimized for Gemini 4" and points Gemini 4 users to Antigravity
 # CLI, and no Gemini CLI page confirms the Gemini 4 models work there. So the
 # Gemini 4 family (Carbon, Argon, Hydrogen) is kept as passthrough values a
-# city can pin, but no tier resolves to it. Frontier falls back to 3.1 Pro,
+# city can pin, but no tier resolves to it. Principal falls back to 3.1 Pro,
 # still a preview endpoint. Revisit when Gemini CLI documents Gemini 4.
 #
-# NOTE the asymmetry: on Gemini, deep and standard resolve to the same model
-# AND effort is inert there, so those two tiers behave identically. Under
-# Gemini, raising an agent from standard to deep changes nothing - move it to
-# frontier to get more capability.
-#
-# frontier carries an external version requirement on Codex: a CLI new enough
-# for GPT-6 Astra.
-#
-# Nothing is mapped to `frontier` yet; it exists so a city can opt one agent
-# up without inventing vocabulary.
+# NOTE the asymmetry: on Gemini, engineer and operator resolve to the same
+# model AND effort is inert there, so those two tiers behave identically.
+# Under Gemini, moving an agent from operator to engineer changes nothing.
 #
 # Effort uses one vocabulary too: low, medium, high, xhigh, max. Every level
 # now maps to a real setting on Claude Code and Codex; Codex previously clamped
@@ -85,7 +92,7 @@ description = "House style for a Gas City: provider-agnostic capability tiers an
 base = "builtin:claude"
 ready_delay_ms = 0
 options_schema_merge = "by_key"
-option_defaults = { model = "standard", effort = "medium" }
+option_defaults = { model = "operator", effort = "medium" }
 
 # model: four portable tiers, then this provider's own current values.
 # Prior-generation 4.x entries are intentionally gone: the current
@@ -94,26 +101,49 @@ option_defaults = { model = "standard", effort = "medium" }
 key = "model"
 label = "Model tier"
 type = "select"
-default = "standard"
+default = "operator"
+
+[[providers.claude.options_schema.choices]]
+value = "principal"
+label = "Principal"
+flag_args = ["--model", "claude-fable-5-2"]
+
+[[providers.claude.options_schema.choices]]
+value = "engineer"
+label = "Engineer"
+flag_args = ["--model", "claude-opus-5-5"]
+
+[[providers.claude.options_schema.choices]]
+value = "operator"
+label = "Operator"
+flag_args = ["--model", "claude-sonnet-5-5"]
+
+[[providers.claude.options_schema.choices]]
+value = "custodian"
+label = "Custodian"
+flag_args = ["--model", "claude-haiku-5-5"]
+
+# deprecated aliases: the pre-0.7.0 tier names, resolving to the same
+# models. Kept for one release so existing city patches keep working.
 
 [[providers.claude.options_schema.choices]]
 value = "frontier"
-label = "Frontier"
+label = "Frontier (deprecated: use principal)"
 flag_args = ["--model", "claude-fable-5-2"]
 
 [[providers.claude.options_schema.choices]]
 value = "deep"
-label = "Deep"
+label = "Deep (deprecated: use engineer)"
 flag_args = ["--model", "claude-opus-5-5"]
 
 [[providers.claude.options_schema.choices]]
 value = "standard"
-label = "Standard"
+label = "Standard (deprecated: use operator)"
 flag_args = ["--model", "claude-sonnet-5-5"]
 
 [[providers.claude.options_schema.choices]]
 value = "light"
-label = "Light"
+label = "Light (deprecated: use custodian)"
 flag_args = ["--model", "claude-haiku-5-5"]
 
 # passthrough: pin an exact model instead of a tier
@@ -203,7 +233,7 @@ flag_args = ["--effort", "max"]
 [providers.codex]
 base = "builtin:codex"
 options_schema_merge = "by_key"
-option_defaults = { model = "standard", effort = "medium" }
+option_defaults = { model = "operator", effort = "medium" }
 
 # model: four portable tiers, then this provider's own current values.
 # gpt-5.2, gpt-5.3-codex, gpt-5.4 and gpt-5.4-mini are intentionally
@@ -212,26 +242,49 @@ option_defaults = { model = "standard", effort = "medium" }
 key = "model"
 label = "Model tier"
 type = "select"
-default = "standard"
+default = "operator"
+
+[[providers.codex.options_schema.choices]]
+value = "principal"
+label = "Principal"
+flag_args = ["--model", "gpt-6-astra"]
+
+[[providers.codex.options_schema.choices]]
+value = "engineer"
+label = "Engineer"
+flag_args = ["--model", "gpt-6.1-sol"]
+
+[[providers.codex.options_schema.choices]]
+value = "operator"
+label = "Operator"
+flag_args = ["--model", "gpt-6.1-terra"]
+
+[[providers.codex.options_schema.choices]]
+value = "custodian"
+label = "Custodian"
+flag_args = ["--model", "gpt-6-luna"]
+
+# deprecated aliases: the pre-0.7.0 tier names, resolving to the same
+# models. Kept for one release so existing city patches keep working.
 
 [[providers.codex.options_schema.choices]]
 value = "frontier"
-label = "Frontier"
+label = "Frontier (deprecated: use principal)"
 flag_args = ["--model", "gpt-6-astra"]
 
 [[providers.codex.options_schema.choices]]
 value = "deep"
-label = "Deep"
+label = "Deep (deprecated: use engineer)"
 flag_args = ["--model", "gpt-6.1-sol"]
 
 [[providers.codex.options_schema.choices]]
 value = "standard"
-label = "Standard"
+label = "Standard (deprecated: use operator)"
 flag_args = ["--model", "gpt-6.1-terra"]
 
 [[providers.codex.options_schema.choices]]
 value = "light"
-label = "Light"
+label = "Light (deprecated: use custodian)"
 flag_args = ["--model", "gpt-6-luna"]
 
 # passthrough: pin an exact model instead of a tier
@@ -296,7 +349,7 @@ flag_args = ["-c", "model_reasoning_effort=max"]
 [providers.gemini]
 base = "builtin:gemini"
 options_schema_merge = "by_key"
-option_defaults = { model = "standard", effort = "medium" }
+option_defaults = { model = "operator", effort = "medium" }
 
 # model: four portable tiers, then this provider's own current values.
 # The 2.5 entries are intentionally gone: gemini-2.5-pro shuts down
@@ -305,26 +358,49 @@ option_defaults = { model = "standard", effort = "medium" }
 key = "model"
 label = "Model tier"
 type = "select"
-default = "standard"
+default = "operator"
+
+[[providers.gemini.options_schema.choices]]
+value = "principal"
+label = "Principal"
+flag_args = ["--model", "gemini-3.1-pro-preview"]
+
+[[providers.gemini.options_schema.choices]]
+value = "engineer"
+label = "Engineer"
+flag_args = ["--model", "gemini-3.8-flash"]
+
+[[providers.gemini.options_schema.choices]]
+value = "operator"
+label = "Operator"
+flag_args = ["--model", "gemini-3.8-flash"]
+
+[[providers.gemini.options_schema.choices]]
+value = "custodian"
+label = "Custodian"
+flag_args = ["--model", "gemini-3.5-flash-lite"]
+
+# deprecated aliases: the pre-0.7.0 tier names, resolving to the same
+# models. Kept for one release so existing city patches keep working.
 
 [[providers.gemini.options_schema.choices]]
 value = "frontier"
-label = "Frontier"
+label = "Frontier (deprecated: use principal)"
 flag_args = ["--model", "gemini-3.1-pro-preview"]
 
 [[providers.gemini.options_schema.choices]]
 value = "deep"
-label = "Deep"
+label = "Deep (deprecated: use engineer)"
 flag_args = ["--model", "gemini-3.8-flash"]
 
 [[providers.gemini.options_schema.choices]]
 value = "standard"
-label = "Standard"
+label = "Standard (deprecated: use operator)"
 flag_args = ["--model", "gemini-3.8-flash"]
 
 [[providers.gemini.options_schema.choices]]
 value = "light"
-label = "Light"
+label = "Light (deprecated: use custodian)"
 flag_args = ["--model", "gemini-3.5-flash-lite"]
 
 # passthrough: pin an exact model instead of a tier
@@ -397,7 +473,7 @@ label = "Max"
 # judgment: decides what the work is and how to build it.
 [[patches.agent]]
 name = "mayor"
-option_defaults = { model = "deep", effort = "high" }
+option_defaults = { model = "engineer", effort = "high" }
 
 # Scoped to the city for the same reason the mayor agent is: without it the
 # session is expanded per rig and then disabled, because its city-scoped
