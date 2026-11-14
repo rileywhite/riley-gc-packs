@@ -1,0 +1,192 @@
+# compound-engineering — Every Inc.'s Compound Engineering methodology as a
+# Gas City build factory, with capability tiers for its agents.
+#
+# Inherits gascity-packs' compound-engineering pack: the compound-build
+# formula, its plan-review and code-review loops, and 28 ce-* agents. It
+# assigns each agent a capability tier and effort. The tier vocabulary comes
+# from the provider blocks in the `house` pack, and the formulas also route to
+# gc's worker roles, so a city composes this with `gc`, `bd` and `house`.
+#
+# Import it at city scope and bind it as `compound-engineering`:
+#
+#   [imports.compound-engineering]
+#   source = "https://github.com/rileywhite/riley-gc-packs.git//packs/compound-engineering"
+#
+# The binding is not cosmetic. The upstream formulas route every lane to
+# `compound-engineering.ce-*` by name, so any other binding leaves all 28
+# routes pointing at agents that do not exist. Inside this pack the upstream
+# pack keeps that same binding.
+#
+# Every ce-* agent is declared scope = "rig" upstream, so this one city-level
+# import expands them across every rig. No rig-level import is needed.
+
+[pack]
+name = "compound-engineering-tiered"
+version = "0.6.0"
+schema = 2
+description = "Compound Engineering as a Gas City build factory, with a capability tier for every agent."
+
+# ── inherited pack ─────────────────────────────────────────────────────
+# Move the pin with `gc import upgrade`, not by hand.
+#
+# Pinned to the same gascity-packs commit as the gascity import in the `gc`
+# pack (d36950e). Upstream compound-engineering imports gascity itself, by a
+# relative path, so its gascity resolves at whatever commit this pin names.
+# Sharing the commit keeps a single gascity in the city. compound-engineering
+# has not changed since d36950e, so this is also the current upstream pack.
+
+[imports.compound-engineering]
+source = "https://github.com/gastownhall/gascity-packs/tree/main/compound-engineering"
+version = "sha:d36950e53fc1f5475be7e5039842729dbf791ccf"
+
+# ── agent tiers ────────────────────────────────────────────────────────
+# Same rubric as `gc`: the split is by the kind of work, not by how often the
+# agent runs. Agents that decide what to build, or judge whether the result
+# is acceptable, sit on the judgment tier.
+
+# ── requirements and planning ─────────────────────────────────────────
+# These decide what gets built and how. A weak plan is reviewed, decomposed
+# and implemented faithfully, so its mistakes cost every later stage.
+[[patches.agent]]
+name = "ce-brainstorm"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "ce-plan"
+option_defaults = { model = "deep", effort = "high" }
+
+
+# ── plan review ────────────────────────────────────────────────────────
+# The four-persona panel that must approve the plan before any code exists.
+[[patches.agent]]
+name = "ce-architecture-strategist"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "ce-coherence-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "ce-feasibility-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "ce-scope-guardian-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+
+# ── implementation ─────────────────────────────────────────────────────
+# Writes each drained item and applies review fixes: the counterpart of gc's
+# implementation-worker, tiered the same way. xhigh follows Anthropic's effort
+# guidance for long-running agentic coding with large token budgets.
+[[patches.agent]]
+name = "ce-work"
+option_defaults = { model = "deep", effort = "xhigh" }
+
+
+# ── review lanes that catch defects ────────────────────────────────────
+# A miss in any of these ships a bug, a vulnerability or an outage, so they
+# stay on the judgment tier. Most are conditional: the selector runs them only
+# when the change touches their area.
+[[patches.agent]]
+name = "ce-correctness-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "ce-testing-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "ce-security-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "ce-reliability-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "ce-performance-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "ce-data-migration-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "ce-api-contract-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "ce-adversarial-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "ce-julik-frontend-races-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "ce-swift-ios-reviewer"
+option_defaults = { model = "deep", effort = "high" }
+
+[[patches.agent]]
+name = "ce-deployment-verification-agent"
+option_defaults = { model = "deep", effort = "high" }
+
+
+# ── review lanes about hygiene and history ─────────────────────────────
+# These judge too, but a miss costs a style note or a repeated comment rather
+# than a defect. compound-engineering fans out up to 17 lanes per review pass
+# and loops up to 8 passes, so these drop to the workhorse tier: the
+# difference between "judges correctness" and "judges conventions" is what
+# keeps the fan-out affordable.
+[[patches.agent]]
+name = "ce-maintainability-reviewer"
+option_defaults = { model = "standard", effort = "medium" }
+
+[[patches.agent]]
+name = "ce-project-standards-reviewer"
+option_defaults = { model = "standard", effort = "medium" }
+
+[[patches.agent]]
+name = "ce-agent-native-reviewer"
+option_defaults = { model = "standard", effort = "medium" }
+
+[[patches.agent]]
+name = "ce-previous-comments-reviewer"
+option_defaults = { model = "standard", effort = "medium" }
+
+
+# ── supporting lanes ───────────────────────────────────────────────────
+# The selector decides which conditional lanes run. Upstream calls it a cheap
+# gate, but a wrong skip silently drops a lane such as security, so it sits on
+# the workhorse tier rather than light - the same reasoning gc applies to its
+# control dispatcher. The learnings researcher retrieves past findings to feed
+# each review; it gathers rather than judges.
+[[patches.agent]]
+name = "ce-code-review-selector"
+option_defaults = { model = "standard", effort = "medium" }
+
+[[patches.agent]]
+name = "ce-learnings-researcher"
+option_defaults = { model = "standard", effort = "medium" }
+
+
+# ── synthesis and resolution ───────────────────────────────────────────
+# These consolidate verdicts the lanes already reasoned out, so they keep the
+# judgment tier but not the lanes' effort budget, matching gc's
+# review-synthesizer.
+[[patches.agent]]
+name = "ce-plan-review-synthesizer"
+option_defaults = { model = "deep", effort = "medium" }
+
+[[patches.agent]]
+name = "ce-code-review-synthesizer"
+option_defaults = { model = "deep", effort = "medium" }
+
+[[patches.agent]]
+name = "ce-pr-comment-resolver"
+option_defaults = { model = "deep", effort = "medium" }
+
+[[patches.agent]]
+name = "ce-compound"
+option_defaults = { model = "deep", effort = "medium" }
