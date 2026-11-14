@@ -44,37 +44,47 @@ contributes, so the keys above are not cosmetic:
 
 ## Capability tiers
 
-Four portable names replace hardcoded model ids. Current as of 2026-11-14.
+Four portable names replace hardcoded model ids. Each one names the kind of
+agent the tier is for, so a new agent is placed by asking what kind of agent it
+is, not how big a model it needs. Models are current as of 2026-11-14.
 
-| Tier | Claude | Codex | Gemini |
-|---|---|---|---|
-| frontier | claude-fable-5-2 | gpt-6-astra | gemini-3.1-pro-preview |
-| deep | claude-opus-5-5 | gpt-6.1-sol | gemini-3.8-flash |
-| standard | claude-sonnet-5-5 | gpt-6.1-terra | gemini-3.8-flash |
-| light | claude-haiku-5-5 | gpt-6-luna | gemini-3.5-flash-lite |
+| Tier | For agents that | Claude | Codex | Gemini |
+|---|---|---|---|---|
+| principal | set the direction everything downstream builds on | claude-fable-5-2 | gpt-6-astra | gemini-3.1-pro-preview |
+| engineer | plan, build and review the work | claude-opus-5-5 | gpt-6.1-sol | gemini-3.8-flash |
+| operator | run a defined procedure | claude-sonnet-5-5 | gpt-6.1-terra | gemini-3.8-flash |
+| custodian | keep things running unattended | claude-haiku-5-5 | gpt-6-luna | gemini-3.5-flash-lite |
 
-Nothing in these packs is mapped to `frontier`. It exists so a city can raise
-one agent without inventing vocabulary.
+A principal is an agent whose output everything downstream implements and
+which runs rarely, typically once per build. Both conditions matter. The first
+makes its mistakes the most expensive in the pipeline, and the second keeps the
+top tier affordable.
 
-Codex has a distinct model per tier again. GPT-6.1 Terra restores a mid model
-for standard; earlier versions shared GPT-6.1 Sol between deep and standard
-because the GPT-6 family had no Terra. OpenAI positions Terra for writing,
-visual understanding and computer use rather than coding. Terra needs Codex CLI
-0.159.0 or later.
+Principals that work with a person in the loop run at medium effort rather than
+high. Top-tier models think longer per turn and take more initiative, which in
+a conversation means long pauses before each question and a tendency to wander
+past what was asked. Anthropic notes that lower effort on its top tier often
+beats prior models at their highest.
+
+The names before 0.7.0 were `frontier`, `deep`, `standard` and `light`. They
+still work in this release as deprecated aliases that resolve to the same
+models, so existing city patches keep running. Move patches to the new names
+before the aliases are removed.
+
+OpenAI positions GPT-6.1 Terra for writing, visual understanding and computer
+use rather than coding. Terra needs Codex CLI 0.159.0 or later, and the
+principal tier needs a Codex CLI new enough for GPT-6 Astra.
 
 Gemini maps only to models Gemini CLI documents. Google says Gemini CLI "has
 not been optimized for Gemini 4" and points Gemini 4 users to Antigravity CLI,
 and no Gemini CLI page confirms the Gemini 4 models work there. The Gemini 4
 family, Carbon, Argon and Hydrogen, stays available as passthrough values a
-city can pin, but no tier resolves to it. Frontier falls back to 3.1 Pro, still
+city can pin, but no tier resolves to it. Principal falls back to 3.1 Pro, still
 a preview endpoint. This is worth revisiting once Gemini CLI documents Gemini 4.
 
-One asymmetry is worth knowing. On Gemini, deep and standard resolve to the same
-model, and effort is inert there, so those two tiers behave identically. Under
-Gemini, raising an agent from standard to deep changes nothing; move it to
-frontier to get more capability.
-
-On Codex, the frontier tier needs a CLI new enough for GPT-6 Astra.
+One asymmetry is worth knowing. On Gemini, engineer and operator resolve to the
+same model, and effort is inert there, so those two tiers behave identically.
+Under Gemini, moving an agent from operator to engineer changes nothing.
 
 Each provider also keeps its current models as passthrough choices, so a
 city can pin an exact model instead of a tier. Retired models are not
@@ -105,39 +115,44 @@ left out until they all give it a real surface.
 
 | Agent | From | Scope | Tier | Effort |
 |---|---|---|---|---|
-| mayor | house | city | deep | high |
-| dog | bd | city | light | low |
-| control-dispatcher | gc | both | standard | low |
-| run-operator | gc | rig | standard | low |
-| publisher | gc | rig | standard | low |
-| issue-triager | gc | rig | standard | medium |
-| feature-refiner | gc | rig | standard | medium |
-| task-decomposer | gc | rig | deep | high |
-| requirements-planner | gc | rig | deep | high |
-| design-author | gc | rig | deep | high |
-| design-implementation-reviewer | gc | rig | deep | high |
-| design-test-risk-reviewer | gc | rig | deep | high |
-| implementation-reviewer | gc | rig | deep | high |
-| gap-analyst | gc | rig | deep | high |
-| quality-judge | gc | rig | deep | high |
-| review-synthesizer | gc | rig | deep | medium |
-| implementation-worker | gc | rig | deep | xhigh |
+| requirements-planner | gc | rig | principal | medium |
+| design-author | gc | rig | principal | high |
+| mayor | house | city | engineer | high |
+| task-decomposer | gc | rig | engineer | high |
+| design-implementation-reviewer | gc | rig | engineer | high |
+| design-test-risk-reviewer | gc | rig | engineer | high |
+| implementation-reviewer | gc | rig | engineer | high |
+| gap-analyst | gc | rig | engineer | high |
+| quality-judge | gc | rig | engineer | high |
+| review-synthesizer | gc | rig | engineer | medium |
+| implementation-worker | gc | rig | engineer | xhigh |
+| control-dispatcher | gc | both | operator | low |
+| run-operator | gc | rig | operator | low |
+| publisher | gc | rig | operator | low |
+| issue-triager | gc | rig | operator | medium |
+| feature-refiner | gc | rig | operator | medium |
+| dog | bd | city | custodian | low |
 
 A city that adds the optional `compound-engineering` pack gets its 28 `ce-*`
 agents as well. They are tiered by the same rubric, and its
 [README](../compound-engineering/README.md) has the full table.
 
-Anything unpatched falls through to the provider default of `standard` at
+Anything unpatched falls through to the provider default of `operator` at
 medium effort.
 
-The split is by the kind of work, not by how often an agent runs. Agents that
-execute a defined procedure stay cheap. Agents that decide what to build, or
-judge whether the result is acceptable, do not. Three entries are worth
-calling out. `gap-analyst` sits in the judgment group because finding what is
-absent is harder than checking what is present. `quality-judge` does too,
-because its gate fails on uncertainty. `review-synthesizer` keeps the deep
-tier but drops to medium effort, because it aggregates verdicts the reviewers
-have already reasoned out.
+The tier follows the kind of agent. A few placements are worth calling out:
+
+- **The requirements planner and design author are principals.** Each runs once
+  per build, and the whole build implements what they decide. The planner runs
+  at medium because it works with a person in the loop.
+- **The mayor and the implementation worker stay engineers.** Both matter a
+  great deal, but they run continuously or once per work item, so the top
+  tier's price would land on the largest line items.
+- **`gap-analyst` and `quality-judge` are engineers, not operators.** Finding
+  what is absent is harder than checking what is present, and the quality gate
+  fails on uncertainty.
+- **`review-synthesizer` is an engineer at medium effort.** It aggregates
+  verdicts the reviewers have already reasoned out.
 
 ## The mayor
 
@@ -172,7 +187,7 @@ found in merged config" rather than telling you the key was the problem.
 [[patches.agent]]
 dir = "my-repo"
 name = "gc.implementation-worker"
-option_defaults = { model = "frontier", effort = "max" }
+option_defaults = { model = "principal", effort = "high" }
 ```
 
 A patch with no `dir` targets the city-scoped copy, which is what you want for

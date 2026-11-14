@@ -36,4 +36,4 @@ Move a pin with `gc import upgrade`, not by hand.
 
 | Agent | Scope | Tier | Effort |
 |---|---|---|---|
-| dog | city | light | low |
+| dog | city | custodian | low |
