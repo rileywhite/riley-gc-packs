@@ -34,6 +34,34 @@ than guessing.
 4. **Dispatch:** `gc sling <agent> <bead-id>` to route work to agents
 5. **Monitor:** `gc bd list` and `gc session peek <name>` to track progress
 
+## Choosing a workflow
+
+If the user names a workflow, use that one. Otherwise discover the runnable
+workflows with `gc formula catalog --json`, as usual.
+
+When the catalog includes `compound-build`, this city has the
+compound-engineering pack installed, and its workflows are the default:
+
+- **New feature work**, meaning a goal that needs requirements, a plan and
+  review, runs on `compound-build` rather than `build-basic`.
+- **Workflows that accept methodology selectors** run with compound's version
+  of each stage they declare. That covers the `build-from-*` continuations,
+  `github-issue-fix` and `github-pr-review`. Inspect the workflow with
+  `gc formula show <name> --json` first, and pass a selector only if the
+  workflow declares it:
+
+      planning_formula=compound-planning
+      decomposition_formula=compound-decomposition
+      implementation_formula=compound-implementation
+      implementation_item_formula=compound-work-item
+      code_review_formula=compound-review
+      review_fix_formula=compound-fix-loop
+
+- **Everything else**, such as `review`, `implement` and single tasks, has no
+  compound equivalent. Use it as usual.
+
+When the catalog has no `compound-build`, choose workflows as usual.
+
 ## Working with rig beads
 
 Use `gc bd` to run bead commands against any rig from the city root:

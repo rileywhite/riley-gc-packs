@@ -21,7 +21,7 @@
 
 [pack]
 name = "gc-tiered"
-version = "0.7.0"
+version = "0.7.1"
 schema = 2
 description = "The public gascity pack, its worker roles and gc core, with a capability tier for every agent."
 
