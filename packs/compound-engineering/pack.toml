@@ -22,22 +22,28 @@
 
 [pack]
 name = "compound-engineering-tiered"
-version = "0.8.0"
+version = "0.8.1"
 schema = 2
 description = "Compound Engineering as a Gas City build factory, with a capability tier for every agent."
 
 # ── inherited pack ─────────────────────────────────────────────────────
 # Move the pin with `gc import upgrade`, not by hand.
 #
-# Pinned to the same gascity-packs commit as the gascity import in the `gc`
-# pack (0f07496). Upstream compound-engineering imports gascity itself, by a
+# Pinned to rileywhite/gascity-packs b7318e5, the same commit as the gascity
+# import in the `gc` pack: upstream main 0f07496 plus one fix. Upstream's
+# compound formulas point their check gates at `.gc/scripts/checks/`, which
+# nothing populates in a running city, so the review and plan-review loops are
+# quarantined with control_dispatch_error and their lanes never run. The fork
+# uses the layer-resolved `../assets/scripts/checks/` form instead, which gc
+# resolves to the gascity layer's scripts. Return to upstream once the fix
+# merges there; see README.md, "Upstream fix". Upstream compound-engineering imports gascity itself, by a
 # relative path, so its gascity resolves at whatever commit this pin names.
 # Sharing the commit keeps a single gascity in the city. ALWAYS move this pin
 # and the `gc` pack's gascity pins together.
 
 [imports.compound-engineering]
-source = "https://github.com/gastownhall/gascity-packs/tree/main/compound-engineering"
-version = "sha:0f07496d2fa4fd957a8bea77dcfd653c5d4bcef5"
+source = "https://github.com/rileywhite/gascity-packs/tree/compound-check-asset-paths/compound-engineering"
+version = "sha:b7318e50985a07ffce376abd183a2b5ccdeef82e"
 
 # ── agent tiers ────────────────────────────────────────────────────────
 # Each tier names a kind of agent (see the `house` pack): operators run

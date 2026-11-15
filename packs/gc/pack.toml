@@ -21,14 +21,22 @@
 
 [pack]
 name = "gc-tiered"
-version = "0.8.0"
+version = "0.8.1"
 schema = 2
 description = "The public gascity pack, its worker roles and gc core, with a capability tier for every agent."
 
 # ── inherited packs ────────────────────────────────────────────────────
 # Move a pin with `gc import upgrade`, not by hand.
 #
-# gascity and its roles are pinned to gascity-packs main (0f07496). The newest
+# gascity and its roles come from rileywhite/gascity-packs, a fork pinned to
+# b7318e5: upstream main 0f07496 plus one commit that moves compound-
+# engineering's check scripts to the layer-resolved path (see the
+# compound-engineering pack). That commit touches only compound-engineering/
+# and tests/, so gascity and its roles are byte-identical to upstream 0f07496.
+# Return to upstream once the fix merges there; see the compound-engineering
+# README, "Upstream fix".
+#
+# Upstream main 0f07496 was chosen over a release because the newest
 # release, gascity 0.1.7 (5bf643c), has gascity content identical to the
 # previous pin, so main is where the newer work lives: three role-worker fixes
 # (stop on non-clearing bead errors, rerun only failed CI jobs, and drop a
@@ -40,12 +48,12 @@ description = "The public gascity pack, its worker roles and gc core, with a cap
 # gascity itself. Move these pins and that one together.
 
 [imports.gc]
-source = "https://github.com/gastownhall/gascity-packs/tree/main/gascity"
-version = "sha:0f07496d2fa4fd957a8bea77dcfd653c5d4bcef5"
+source = "https://github.com/rileywhite/gascity-packs/tree/compound-check-asset-paths/gascity"
+version = "sha:b7318e50985a07ffce376abd183a2b5ccdeef82e"
 
 [imports.roles]
-source = "https://github.com/gastownhall/gascity-packs/tree/main/gascity/roles"
-version = "sha:0f07496d2fa4fd957a8bea77dcfd653c5d4bcef5"
+source = "https://github.com/rileywhite/gascity-packs/tree/compound-check-asset-paths/gascity/roles"
+version = "sha:b7318e50985a07ffce376abd183a2b5ccdeef82e"
 
 # gc's own builtin pack, at the commit gc 1.5.1 bundles and writes on init.
 [imports.core]
