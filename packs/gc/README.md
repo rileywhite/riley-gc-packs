@@ -28,12 +28,21 @@ import expands them across every rig. No rig-level import is needed.
 
 | Import | Source | Pin |
 |---|---|---|
-| `gc` | gascity-packs `gascity` | `d36950e` |
-| `roles` | gascity-packs `gascity/roles` | `d36950e` |
+| `gc` | gascity-packs `gascity`, from the rileywhite fork | `b7318e5` |
+| `roles` | gascity-packs `gascity/roles`, from the rileywhite fork | `b7318e5` |
 | `core` | gascity `internal/bootstrap/packs/core` | `f895c0f`, the pin gc 1.5 bundles |
 
-gascity and its roles are pinned past their 0.1.6 release (`3b3b89f`) to
-`d36950e` (gascity-packs#194), the last commit that touches `gascity/`.
+gascity and its roles come from the
+[rileywhite/gascity-packs](https://github.com/rileywhite/gascity-packs) fork at
+`b7318e5`: upstream main `0f07496` plus one commit that fixes
+compound-engineering's check-script paths. That commit does not touch
+`gascity/`, so gascity and its roles match upstream `0f07496` exactly. The fork
+is shared with the compound-engineering pack so the city keeps one gascity; see
+[its Upstream fix section](../compound-engineering#upstream-fix) for when to
+move back.
+
+Upstream `0f07496` is past gascity's 0.1.6 release (`3b3b89f`) and includes
+gascity-packs#194.
 gc 1.5 resolves formula check scripts only when they are written as
 `../assets/scripts/checks/<name>`, which it rewrites to the script inside the
 pack. 0.1.6 still writes `.gc/scripts/checks/<name>`, a directory nothing

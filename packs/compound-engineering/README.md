@@ -4,8 +4,9 @@
 methodology as a Gas City build factory, with a capability tier for every
 agent. It wraps gascity-packs'
 [compound-engineering](https://github.com/gastownhall/gascity-packs/tree/main/compound-engineering)
-pack and changes nothing about its formulas: it only assigns its 28 `ce-*`
-agents a tier and effort.
+pack and assigns its 28 `ce-*` agents a tier and effort. For now it takes
+that pack from a fork that fixes where the formulas find their check scripts;
+see [Upstream fix](#upstream-fix). Nothing else about the formulas changes.
 
 Compound Engineering's distinguishing features are a four-persona review of
 the plan before any code exists, a review fan-out of up to 17 specialist
@@ -21,7 +22,7 @@ tier names mean, and the compound formulas route work to gc's worker roles.
 ```toml
 [imports.compound-engineering]
 source = "https://github.com/rileywhite/riley-gc-packs.git//packs/compound-engineering"
-version = "0.8.0"
+version = "0.8.1"
 ```
 
 Then run `gc import install`.
@@ -41,8 +42,8 @@ that don't exist.
 
 Upstream compound-engineering imports gascity itself, by a relative path, so
 its gascity resolves at whatever commit this pack pins. The pin matches the
-gascity commit in the `gc` pack (`0f07496`), which keeps a single gascity in
-the city. Always move the `gc` and `compound-engineering` pins together.
+gascity commit in the `gc` pack (`b7318e5` on the fork, see below), which keeps
+a single gascity in the city. Always move the `gc` and `compound-engineering` pins together.
 
 The compound formulas also route work to five of gc's worker roles:
 `run-operator`, `publisher`, `task-decomposer`, `implementation-reviewer` and
@@ -54,6 +55,45 @@ agent, with the `gc` pack's tier and effort.
 **Don't also import `gascity/roles` yourself.** Upstream's README tells you to
 add it at rig scope. With this pack set, that would create a second, untiered
 copy of every worker role alongside the tiered one.
+
+## Upstream fix
+
+Upstream compound-engineering (gascity-packs `0f07496`) points every check gate
+in its formulas at `.gc/scripts/checks/<name>.sh`. Nothing populates that
+directory in a running city, so each gate fails with a hard
+`control_dispatch_error`. Symlinking `.gc/scripts` into the pack cache does not
+help: the dispatcher quarantines the review and plan-review loops with "symlink
+target outside containment", so the security, reliability and adversarial
+lanes and the review synthesis never run, and finalize fails three times.
+
+The fix moves those 12 paths to the layer-resolved
+`../assets/scripts/checks/<name>.sh` form, which gc 1.5.1 resolves
+(gascity#3834) to the scripts in the gascity layer this pack imports, the same
+way upstream's gascity formulas already do. It also rewrites the 21 prompt
+lines that sent agents to `.gc/scripts`, and adds a guard test.
+
+| | |
+|---|---|
+| Fork | [rileywhite/gascity-packs](https://github.com/rileywhite/gascity-packs), branch `compound-check-asset-paths` |
+| Commit | `b7318e5`, upstream main `0f07496` plus the fix; it touches only `compound-engineering/` and `tests/` |
+| Pinned by | this pack's `compound-engineering` import and the `gc` pack's `gc` and `roles` imports |
+| Upstream work | No upstream PR from this fork yet. Related upstream: [gascity-packs#149](https://github.com/gastownhall/gascity-packs/pull/149) (draft, the same change across every pack, conflicting since August) and [#169](https://github.com/gastownhall/gascity-packs/pull/169) (gascity only) |
+
+**When upstream has the fix** (a gascity-packs commit whose
+`compound-engineering/formulas` contain no `.gc/scripts/checks`):
+
+1. Point all three imports back at `https://github.com/gastownhall/gascity-packs/tree/main/...`
+   with `version = "sha:<that commit>"`: `compound-engineering` here, and `gc`
+   and `roles` in the `gc` pack. Move them together.
+2. Check what else that commit changes in `gascity/` and `compound-engineering/`,
+   and note it in the pin comments as the earlier pin moves did.
+3. Remove this section and the fork notes in both `pack.toml` files, bump every
+   pack's version together and tag the release.
+4. In each city: `gc import upgrade`, then confirm
+   `gc formula show compound-code-review --json` resolves every check under the
+   gascity pack's `assets/scripts/checks/`. Delete any rig-local `.gc/scripts`
+   workaround (cilador has a copy with a `README.mayor`).
+5. The fork can then be archived.
 
 ## Run a build
 
