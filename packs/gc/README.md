@@ -30,7 +30,7 @@ import expands them across every rig. No rig-level import is needed.
 |---|---|---|
 | `gc` | gascity-packs `gascity`, from the rileywhite fork | `b7318e5` |
 | `roles` | gascity-packs `gascity/roles`, from the rileywhite fork | `b7318e5` |
-| `core` | gascity `internal/bootstrap/packs/core` | `f895c0f`, the pin gc 1.5 bundles |
+| `core` | gascity `internal/bootstrap/packs/core` | `2e643dc`, the pin gc 1.5.1 bundles |
 
 gascity and its roles come from the
 [rileywhite/gascity-packs](https://github.com/rileywhite/gascity-packs) fork at

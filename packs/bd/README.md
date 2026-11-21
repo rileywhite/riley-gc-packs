@@ -28,7 +28,7 @@ fails the city unless `dolt` is overridden too.
 
 | Import | Source | Pin |
 |---|---|---|
-| `bd` | gascity `examples/bd` | `f895c0f`, the pin gc 1.5 bundles |
+| `bd` | gascity `examples/bd` | `2e643dc`, the pin gc 1.5.1 bundles |
 
 Move a pin with `gc import upgrade`, not by hand.
 
