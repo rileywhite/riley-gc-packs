@@ -24,7 +24,7 @@
 
 [pack]
 name = "house"
-version = "0.9.0"
+version = "0.10.0"
 schema = 2
 description = "House style for a Gas City: provider-agnostic capability tiers and a mayor."
 
@@ -48,10 +48,6 @@ description = "House style for a Gas City: provider-agnostic capability tiers an
 # medium effort, because top-tier models think longer per turn and take more
 # initiative.
 #
-# The pre-0.7.0 names frontier, deep, standard and light are kept for one
-# release as deprecated aliases resolving to the same models, so existing
-# city patches keep working.
-#
 # Codex has a distinct model per tier. OpenAI positions GPT-6.1 Terra for
 # writing, visual understanding and computer use rather than coding, so it
 # suits the publisher's PR writing better than the dispatcher's routing.
@@ -60,10 +56,10 @@ description = "House style for a Gas City: provider-agnostic capability tiers an
 #
 # Gemini maps only to models Gemini CLI documents. Google says Gemini CLI "has
 # not been optimized for Gemini 4" and points Gemini 4 users to Antigravity
-# CLI, and no Gemini CLI page confirms the Gemini 4 models work there. So the
-# Gemini 4 family (Carbon, Argon, Hydrogen, Neon) is kept as passthrough values a
-# city can pin, but no tier resolves to it. Principal falls back to 3.1 Pro,
-# still a preview endpoint. Revisit when Gemini CLI documents Gemini 4.
+# CLI, and no Gemini CLI page confirms the Gemini 4 models work there. So no
+# Gemini 4 model is offered, not even as a passthrough value. Principal falls
+# back to 3.1 Pro, still a preview endpoint. Revisit when Gemini CLI documents
+# Gemini 4.
 #
 # NOTE the asymmetry: on Gemini, engineer and operator resolve to the same
 # model AND effort is inert there, so those two tiers behave identically.
@@ -94,9 +90,9 @@ ready_delay_ms = 0
 options_schema_merge = "by_key"
 option_defaults = { model = "operator", effort = "medium" }
 
-# model: four portable tiers, then this provider's own current values.
-# Prior-generation 4.x entries are intentionally gone, except Haiku 4.5:
-# the current lineup is Fable 5.2, Opus 5.5, Sonnet 5.5 and Haiku 5.5.
+# model: four portable tiers, then passthrough values for the same models,
+# so a city can pin an exact model. Only the models the tiers use are listed;
+# superseded and retired models are deliberately left out.
 [[providers.claude.options_schema]]
 key = "model"
 label = "Model tier"
@@ -123,29 +119,6 @@ value = "custodian"
 label = "Custodian"
 flag_args = ["--model", "claude-haiku-5-5"]
 
-# deprecated aliases: the pre-0.7.0 tier names, resolving to the same
-# models. Kept for one release so existing city patches keep working.
-
-[[providers.claude.options_schema.choices]]
-value = "frontier"
-label = "Frontier (deprecated: use principal)"
-flag_args = ["--model", "claude-fable-5-2"]
-
-[[providers.claude.options_schema.choices]]
-value = "deep"
-label = "Deep (deprecated: use engineer)"
-flag_args = ["--model", "claude-opus-5-5"]
-
-[[providers.claude.options_schema.choices]]
-value = "standard"
-label = "Standard (deprecated: use operator)"
-flag_args = ["--model", "claude-sonnet-5-5"]
-
-[[providers.claude.options_schema.choices]]
-value = "light"
-label = "Light (deprecated: use custodian)"
-flag_args = ["--model", "claude-haiku-5-5"]
-
 # passthrough: pin an exact model instead of a tier
 
 [[providers.claude.options_schema.choices]]
@@ -154,29 +127,9 @@ label = "Fable 5.2"
 flag_args = ["--model", "claude-fable-5-2"]
 
 [[providers.claude.options_schema.choices]]
-value = "fable-5-1"
-label = "Fable 5.1"
-flag_args = ["--model", "claude-fable-5-1"]
-
-[[providers.claude.options_schema.choices]]
-value = "fable-5"
-label = "Fable 5"
-flag_args = ["--model", "claude-fable-5"]
-
-[[providers.claude.options_schema.choices]]
 value = "opus-5-5"
 label = "Opus 5.5"
 flag_args = ["--model", "claude-opus-5-5"]
-
-[[providers.claude.options_schema.choices]]
-value = "opus-5"
-label = "Opus 5"
-flag_args = ["--model", "claude-opus-5"]
-
-[[providers.claude.options_schema.choices]]
-value = "opus-5-1m"
-label = "Opus 5 1M"
-flag_args = ["--model", "claude-opus-5[1m]"]
 
 [[providers.claude.options_schema.choices]]
 value = "sonnet-5-5"
@@ -184,19 +137,9 @@ label = "Sonnet 5.5"
 flag_args = ["--model", "claude-sonnet-5-5"]
 
 [[providers.claude.options_schema.choices]]
-value = "sonnet-5"
-label = "Sonnet 5"
-flag_args = ["--model", "claude-sonnet-5"]
-
-[[providers.claude.options_schema.choices]]
 value = "haiku-5-5"
 label = "Haiku 5.5"
 flag_args = ["--model", "claude-haiku-5-5"]
-
-[[providers.claude.options_schema.choices]]
-value = "haiku-4-5"
-label = "Haiku 4.5"
-flag_args = ["--model", "claude-haiku-4-5"]
 
 [[providers.claude.options_schema]]
 key = "effort"
@@ -235,9 +178,9 @@ base = "builtin:codex"
 options_schema_merge = "by_key"
 option_defaults = { model = "operator", effort = "medium" }
 
-# model: four portable tiers, then this provider's own current values.
-# gpt-5.2, gpt-5.3-codex, gpt-5.4 and gpt-5.4-mini are intentionally
-# gone: all are retired or deprecated for Codex with ChatGPT sign-in.
+# model: four portable tiers, then passthrough values for the same models,
+# so a city can pin an exact model. Only the models the tiers use are listed;
+# superseded and retired models are deliberately left out.
 [[providers.codex.options_schema]]
 key = "model"
 label = "Model tier"
@@ -264,29 +207,6 @@ value = "custodian"
 label = "Custodian"
 flag_args = ["--model", "gpt-6-luna"]
 
-# deprecated aliases: the pre-0.7.0 tier names, resolving to the same
-# models. Kept for one release so existing city patches keep working.
-
-[[providers.codex.options_schema.choices]]
-value = "frontier"
-label = "Frontier (deprecated: use principal)"
-flag_args = ["--model", "gpt-6.2-astra"]
-
-[[providers.codex.options_schema.choices]]
-value = "deep"
-label = "Deep (deprecated: use engineer)"
-flag_args = ["--model", "gpt-6.2-sol"]
-
-[[providers.codex.options_schema.choices]]
-value = "standard"
-label = "Standard (deprecated: use operator)"
-flag_args = ["--model", "gpt-6.1-terra"]
-
-[[providers.codex.options_schema.choices]]
-value = "light"
-label = "Light (deprecated: use custodian)"
-flag_args = ["--model", "gpt-6-luna"]
-
 # passthrough: pin an exact model instead of a tier
 
 [[providers.codex.options_schema.choices]]
@@ -298,21 +218,6 @@ flag_args = ["--model", "gpt-6.2-astra"]
 value = "gpt-6.2-sol"
 label = "GPT-6.2 Sol"
 flag_args = ["--model", "gpt-6.2-sol"]
-
-[[providers.codex.options_schema.choices]]
-value = "gpt-6-astra"
-label = "GPT-6 Astra"
-flag_args = ["--model", "gpt-6-astra"]
-
-[[providers.codex.options_schema.choices]]
-value = "gpt-6.1-sol"
-label = "GPT-6.1 Sol"
-flag_args = ["--model", "gpt-6.1-sol"]
-
-[[providers.codex.options_schema.choices]]
-value = "gpt-6-sol"
-label = "GPT-6 Sol"
-flag_args = ["--model", "gpt-6-sol"]
 
 [[providers.codex.options_schema.choices]]
 value = "gpt-6.1-terra"
@@ -361,9 +266,9 @@ base = "builtin:gemini"
 options_schema_merge = "by_key"
 option_defaults = { model = "operator", effort = "medium" }
 
-# model: four portable tiers, then this provider's own current values.
-# The 2.5 entries are intentionally gone: gemini-2.5-pro shuts down
-# 2026-10-16, and gemini-3-pro-preview is already shut down.
+# model: four portable tiers, then passthrough values for the same models,
+# so a city can pin an exact model. Only the models the tiers use are listed;
+# superseded and retired models are deliberately left out.
 [[providers.gemini.options_schema]]
 key = "model"
 label = "Model tier"
@@ -390,50 +295,7 @@ value = "custodian"
 label = "Custodian"
 flag_args = ["--model", "gemini-3.5-flash-lite"]
 
-# deprecated aliases: the pre-0.7.0 tier names, resolving to the same
-# models. Kept for one release so existing city patches keep working.
-
-[[providers.gemini.options_schema.choices]]
-value = "frontier"
-label = "Frontier (deprecated: use principal)"
-flag_args = ["--model", "gemini-3.1-pro-preview"]
-
-[[providers.gemini.options_schema.choices]]
-value = "deep"
-label = "Deep (deprecated: use engineer)"
-flag_args = ["--model", "gemini-3.8-flash"]
-
-[[providers.gemini.options_schema.choices]]
-value = "standard"
-label = "Standard (deprecated: use operator)"
-flag_args = ["--model", "gemini-3.8-flash"]
-
-[[providers.gemini.options_schema.choices]]
-value = "light"
-label = "Light (deprecated: use custodian)"
-flag_args = ["--model", "gemini-3.5-flash-lite"]
-
 # passthrough: pin an exact model instead of a tier
-
-[[providers.gemini.options_schema.choices]]
-value = "gemini-4-carbon"
-label = "Gemini 4 Carbon"
-flag_args = ["--model", "gemini-4-carbon"]
-
-[[providers.gemini.options_schema.choices]]
-value = "gemini-4-argon"
-label = "Gemini 4 Argon"
-flag_args = ["--model", "gemini-4-argon"]
-
-[[providers.gemini.options_schema.choices]]
-value = "gemini-4-hydrogen"
-label = "Gemini 4 Hydrogen"
-flag_args = ["--model", "gemini-4-hydrogen"]
-
-[[providers.gemini.options_schema.choices]]
-value = "gemini-4-neon"
-label = "Gemini 4 Neon"
-flag_args = ["--model", "gemini-4-neon"]
 
 [[providers.gemini.options_schema.choices]]
 value = "gemini-3.1-pro-preview"
@@ -449,11 +311,6 @@ flag_args = ["--model", "gemini-3.8-flash"]
 value = "gemini-3.5-flash-lite"
 label = "Gemini 3.5 Flash-Lite"
 flag_args = ["--model", "gemini-3.5-flash-lite"]
-
-[[providers.gemini.options_schema.choices]]
-value = "gemini-3.6-flash"
-label = "Gemini 3.6 Flash"
-flag_args = ["--model", "gemini-3.6-flash"]
 
 [[providers.gemini.options_schema]]
 key = "effort"

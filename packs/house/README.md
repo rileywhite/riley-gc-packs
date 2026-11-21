@@ -66,10 +66,9 @@ a conversation means long pauses before each question and a tendency to wander
 past what was asked. Anthropic notes that lower effort on its top tier often
 beats prior models at their highest.
 
-The names before 0.7.0 were `frontier`, `deep`, `standard` and `light`. They
-still work in this release as deprecated aliases that resolve to the same
-models, so existing city patches keep running. Move patches to the new names
-before the aliases are removed.
+The names before 0.7.0, `frontier`, `deep`, `standard` and `light`, were
+removed in 0.10.0. A city patch that still uses one must be renamed to
+`principal`, `engineer`, `operator` or `custodian` respectively.
 
 OpenAI positions GPT-6.1 Terra for writing, visual understanding and computer
 use rather than coding. Terra needs Codex CLI 0.159.0 or later, and the
@@ -78,20 +77,18 @@ with GPT-6.2 Astra and Sol in its catalog.
 
 Gemini maps only to models Gemini CLI documents. Google says Gemini CLI "has
 not been optimized for Gemini 4" and points Gemini 4 users to Antigravity CLI,
-and no Gemini CLI page confirms the Gemini 4 models work there. The Gemini 4
-family, Carbon, Argon, Hydrogen and Neon, stays available as passthrough values a
-city can pin, but no tier resolves to it. Principal falls back to 3.1 Pro, still
-a preview endpoint. This is worth revisiting once Gemini CLI documents Gemini 4.
+and no Gemini CLI page confirms the Gemini 4 models work there. So no Gemini 4
+model is offered, not even as a passthrough value. Principal falls back to 3.1
+Pro, still a preview endpoint. This is worth revisiting once Gemini CLI
+documents Gemini 4.
 
 One asymmetry is worth knowing. On Gemini, engineer and operator resolve to the
 same model, and effort is inert there, so those two tiers behave identically.
 Under Gemini, moving an agent from operator to engineer changes nothing.
 
-Each provider also keeps its current models as passthrough choices, so a
-city can pin an exact model instead of a tier. Retired models are not
-carried: Claude's 4.x generation, the whole Codex 5.x line (gpt-5.6-sol,
-gpt-5.6-terra, gpt-5.6-luna, gpt-5.5, gpt-5.4 and gpt-5.3-codex-spark), and
-Gemini's 2.5 line are all omitted.
+Each provider also offers the models its tiers use as passthrough choices, so
+a city can pin an exact model instead of a tier. Superseded and retired models
+are deliberately left out, so every listed model is one the tiers use today.
 
 Effort shares one vocabulary: `low`, `medium`, `high`, `xhigh`, `max`. Every
 level maps to a real setting on Claude Code and Codex. Codex used to clamp
