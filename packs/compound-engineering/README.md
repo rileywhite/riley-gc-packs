@@ -22,7 +22,7 @@ tier names mean, and the compound formulas route work to gc's worker roles.
 ```toml
 [imports.compound-engineering]
 source = "https://github.com/rileywhite/riley-gc-packs.git//packs/compound-engineering"
-version = "0.8.1"
+version = "0.9.0"
 ```
 
 Then run `gc import install`.

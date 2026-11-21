@@ -24,7 +24,7 @@
 
 [pack]
 name = "house"
-version = "0.8.1"
+version = "0.9.0"
 schema = 2
 description = "House style for a Gas City: provider-agnostic capability tiers and a mayor."
 
@@ -33,13 +33,13 @@ description = "House style for a Gas City: provider-agnostic capability tiers an
 # the tier is for, so a new agent is placed by asking what kind of agent it
 # is, not how big a model it needs.
 #
-#   principal  sets the direction everything     fable-5.2  / gpt-6-astra   / 3.1-pro-preview
+#   principal  sets the direction everything     fable-5.2  / gpt-6.2-astra / 3.1-pro-preview
 #              downstream builds on
-#   engineer   plans, builds and reviews work    opus-5.5   / gpt-6.1-sol   / 3.8-flash
+#   engineer   plans, builds and reviews work    opus-5.5   / gpt-6.2-sol   / 3.8-flash
 #   operator   runs a defined procedure          sonnet-5.5 / gpt-6.1-terra / 3.8-flash
 #   custodian  keeps things running unattended   haiku-5.5  / gpt-6-luna    / 3.5-flash-lite
 #
-# Model ids are current as of 2026-11-14.
+# Model ids are current as of 2026-11-21.
 #
 # A principal is an agent whose output everything downstream implements and
 # which runs rarely, typically once per build. Both conditions matter: the
@@ -55,13 +55,13 @@ description = "House style for a Gas City: provider-agnostic capability tiers an
 # Codex has a distinct model per tier. OpenAI positions GPT-6.1 Terra for
 # writing, visual understanding and computer use rather than coding, so it
 # suits the publisher's PR writing better than the dispatcher's routing.
-# Terra needs Codex CLI 0.159.0 or later; principal needs a CLI new enough for
-# GPT-6 Astra.
+# Terra needs Codex CLI 0.159.0 or later; principal and engineer need 0.171.0
+# or later, the first release with GPT-6.2 Astra and Sol in its catalog.
 #
 # Gemini maps only to models Gemini CLI documents. Google says Gemini CLI "has
 # not been optimized for Gemini 4" and points Gemini 4 users to Antigravity
 # CLI, and no Gemini CLI page confirms the Gemini 4 models work there. So the
-# Gemini 4 family (Carbon, Argon, Hydrogen) is kept as passthrough values a
+# Gemini 4 family (Carbon, Argon, Hydrogen, Neon) is kept as passthrough values a
 # city can pin, but no tier resolves to it. Principal falls back to 3.1 Pro,
 # still a preview endpoint. Revisit when Gemini CLI documents Gemini 4.
 #
@@ -95,8 +95,8 @@ options_schema_merge = "by_key"
 option_defaults = { model = "operator", effort = "medium" }
 
 # model: four portable tiers, then this provider's own current values.
-# Prior-generation 4.x entries are intentionally gone: the current
-# self-serve lineup is Fable 5.1, Opus 5, Sonnet 5 and Haiku 4.5.
+# Prior-generation 4.x entries are intentionally gone, except Haiku 4.5:
+# the current lineup is Fable 5.2, Opus 5.5, Sonnet 5.5 and Haiku 5.5.
 [[providers.claude.options_schema]]
 key = "model"
 label = "Model tier"
@@ -247,12 +247,12 @@ default = "operator"
 [[providers.codex.options_schema.choices]]
 value = "principal"
 label = "Principal"
-flag_args = ["--model", "gpt-6-astra"]
+flag_args = ["--model", "gpt-6.2-astra"]
 
 [[providers.codex.options_schema.choices]]
 value = "engineer"
 label = "Engineer"
-flag_args = ["--model", "gpt-6.1-sol"]
+flag_args = ["--model", "gpt-6.2-sol"]
 
 [[providers.codex.options_schema.choices]]
 value = "operator"
@@ -270,12 +270,12 @@ flag_args = ["--model", "gpt-6-luna"]
 [[providers.codex.options_schema.choices]]
 value = "frontier"
 label = "Frontier (deprecated: use principal)"
-flag_args = ["--model", "gpt-6-astra"]
+flag_args = ["--model", "gpt-6.2-astra"]
 
 [[providers.codex.options_schema.choices]]
 value = "deep"
 label = "Deep (deprecated: use engineer)"
-flag_args = ["--model", "gpt-6.1-sol"]
+flag_args = ["--model", "gpt-6.2-sol"]
 
 [[providers.codex.options_schema.choices]]
 value = "standard"
@@ -288,6 +288,16 @@ label = "Light (deprecated: use custodian)"
 flag_args = ["--model", "gpt-6-luna"]
 
 # passthrough: pin an exact model instead of a tier
+
+[[providers.codex.options_schema.choices]]
+value = "gpt-6.2-astra"
+label = "GPT-6.2 Astra"
+flag_args = ["--model", "gpt-6.2-astra"]
+
+[[providers.codex.options_schema.choices]]
+value = "gpt-6.2-sol"
+label = "GPT-6.2 Sol"
+flag_args = ["--model", "gpt-6.2-sol"]
 
 [[providers.codex.options_schema.choices]]
 value = "gpt-6-astra"
@@ -419,6 +429,11 @@ flag_args = ["--model", "gemini-4-argon"]
 value = "gemini-4-hydrogen"
 label = "Gemini 4 Hydrogen"
 flag_args = ["--model", "gemini-4-hydrogen"]
+
+[[providers.gemini.options_schema.choices]]
+value = "gemini-4-neon"
+label = "Gemini 4 Neon"
+flag_args = ["--model", "gemini-4-neon"]
 
 [[providers.gemini.options_schema.choices]]
 value = "gemini-3.1-pro-preview"

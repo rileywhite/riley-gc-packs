@@ -46,12 +46,12 @@ contributes, so the keys above are not cosmetic:
 
 Four portable names replace hardcoded model ids. Each one names the kind of
 agent the tier is for, so a new agent is placed by asking what kind of agent it
-is, not how big a model it needs. Models are current as of 2026-11-14.
+is, not how big a model it needs. Models are current as of 2026-11-21.
 
 | Tier | For agents that | Claude | Codex | Gemini |
 |---|---|---|---|---|
-| principal | set the direction everything downstream builds on | claude-fable-5-2 | gpt-6-astra | gemini-3.1-pro-preview |
-| engineer | plan, build and review the work | claude-opus-5-5 | gpt-6.1-sol | gemini-3.8-flash |
+| principal | set the direction everything downstream builds on | claude-fable-5-2 | gpt-6.2-astra | gemini-3.1-pro-preview |
+| engineer | plan, build and review the work | claude-opus-5-5 | gpt-6.2-sol | gemini-3.8-flash |
 | operator | run a defined procedure | claude-sonnet-5-5 | gpt-6.1-terra | gemini-3.8-flash |
 | custodian | keep things running unattended | claude-haiku-5-5 | gpt-6-luna | gemini-3.5-flash-lite |
 
@@ -73,12 +73,13 @@ before the aliases are removed.
 
 OpenAI positions GPT-6.1 Terra for writing, visual understanding and computer
 use rather than coding. Terra needs Codex CLI 0.159.0 or later, and the
-principal tier needs a Codex CLI new enough for GPT-6 Astra.
+principal and engineer tiers need Codex CLI 0.171.0 or later, the first release
+with GPT-6.2 Astra and Sol in its catalog.
 
 Gemini maps only to models Gemini CLI documents. Google says Gemini CLI "has
 not been optimized for Gemini 4" and points Gemini 4 users to Antigravity CLI,
 and no Gemini CLI page confirms the Gemini 4 models work there. The Gemini 4
-family, Carbon, Argon and Hydrogen, stays available as passthrough values a
+family, Carbon, Argon, Hydrogen and Neon, stays available as passthrough values a
 city can pin, but no tier resolves to it. Principal falls back to 3.1 Pro, still
 a preview endpoint. This is worth revisiting once Gemini CLI documents Gemini 4.
 
