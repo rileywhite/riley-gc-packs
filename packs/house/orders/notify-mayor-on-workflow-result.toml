@@ -1,0 +1,23 @@
+# notify-mayor-on-workflow-result mails the mayor when a top-level workflow
+# run finishes, or when one of its reviews ends without approval while the
+# run is still going.
+#
+# Gas City records a run's result on its workflow root bead and tells no one,
+# so a coordinator that only acts when prompted learns of finished builds
+# late: slots sit idle, and a PR whose review ran out of rounds looks the same
+# as one that passed. Each notice leads with the review verdict (gc.outcome is
+# not reliable for that) and carries the run, its source bead, review status
+# and rounds, publish status and PR link. What to do with it is the mayor's
+# call.
+#
+# Cooldown, not event: the script reads the bead store, because a run's head
+# can close without emitting bead.closed, and an exec order on a bead event
+# re-fires on its own tracking beads. Reading bead state and sending mail is
+# mechanical, so it runs as exec with no agent. See
+# assets/scripts/notify-mayor-on-workflow-result.sh.
+[order]
+description = "Mail the mayor when a workflow run finishes or a review ends unapproved"
+trigger = "cooldown"
+interval = "2m"
+timeout = "5m"
+exec = "$PACK_DIR/assets/scripts/notify-mayor-on-workflow-result.sh"

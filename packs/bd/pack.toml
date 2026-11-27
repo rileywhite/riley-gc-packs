@@ -15,7 +15,7 @@
 
 [pack]
 name = "bd-tiered"
-version = "0.10.0"
+version = "0.11.0"
 schema = 2
 description = "gc's bundled bd pack, with a capability tier for every agent."
 

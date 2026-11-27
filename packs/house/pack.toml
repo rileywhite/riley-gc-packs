@@ -24,7 +24,7 @@
 
 [pack]
 name = "house"
-version = "0.10.0"
+version = "0.11.0"
 schema = 2
 description = "House style for a Gas City: provider-agnostic capability tiers and a mayor."
 
