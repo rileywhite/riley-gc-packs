@@ -178,6 +178,44 @@ mayor records each decision on the bead, as `house.build` metadata and a
 request once its reviews pass. A workflow you name, or your own call that work
 is simple or complex, always wins.
 
+### Workflow notices
+
+Gas City records a run's result on its workflow root bead and tells no one.
+The `notify-mayor-on-workflow-result` order closes that gap. Every two minutes
+it reads each rig's top-level workflow runs and mails the mayor, with
+`--notify` so a stopped mayor is woken, when:
+
+- a run finishes, whatever its outcome, or
+- a run's plan or code review lands on a status other than approved while the
+  run is still going. A build does not stop when a review loop runs out of
+  rounds, so this is the early warning.
+
+Each notice is sent once. Its subject leads with the review verdict rather
+than `gc.outcome`, which can read `fail` for a run whose reviews all approved.
+The body gives the run, its source bead, each review's status and rounds,
+the publish status and the pull request link. The mayor decides what to do.
+
+The order runs with no agent. On its first run it records every existing
+run as already seen and sends nothing, so installing it does not replay
+history. A failed send is not recorded and is retried on the next run. It
+reads these optional environment variables:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `GC_WORKFLOW_NOTICE_TO` | the session whose template is `<binding>.mayor` | who gets the notices |
+| `GC_WORKFLOW_NOTICE_LOOKBACK` | `6` | hours of closed runs to consider |
+| `GC_WORKFLOW_NOTICE_DRY_RUN` | `0` | `1` prints the notices instead of sending them |
+
+To preview what it would send, without touching its state, run from the city
+root:
+
+    GC_WORKFLOW_NOTICE_DRY_RUN=1 GC_PACK_STATE_DIR=$(mktemp -d) \
+      bash <house pack>/assets/scripts/notify-mayor-on-workflow-result.sh
+
+With an empty state directory the script seeds and prints nothing, so put
+`{"runs":{}}` in `notify-mayor-on-workflow-result-state.json` there first to
+see every run in the lookback window.
+
 ## What still belongs in your city.toml
 
 Two things are city-only by schema, and a pack declaring them fails to load.

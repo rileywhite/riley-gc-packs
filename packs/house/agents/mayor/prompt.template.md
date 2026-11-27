@@ -99,6 +99,18 @@ Build artifacts land under `gc-plans/`, which rigs ignore.
 - **Workflows with no build equivalent**, such as `review` and `implement`,
   run as usual.
 
+## Workflow notices
+
+The `notify-mayor-on-workflow-result` order mails you when a workflow run
+finishes, or when one of its reviews ends without approval while the run is
+still going. A build does not stop when a review loop runs out of rounds, so
+a notice may be your first sign that a PR was published unreviewed.
+
+Each notice leads with the review verdict. Judge a run by its review status
+and its pull request, not by `gc.outcome`, which can read `fail` for a run
+whose reviews all approved. Check the facts in a notice before acting on it.
+What to do next is your judgment.
+
 ## Working with rig beads
 
 Use `gc bd` to run bead commands against any rig from the city root:
