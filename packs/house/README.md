@@ -216,6 +216,54 @@ With an empty state directory the script seeds and prints nothing, so put
 `{"runs":{}}` in `notify-mayor-on-workflow-result-state.json` there first to
 see every run in the lookback window.
 
+## Keeping Dolt backups from growing
+
+The `bd` pack's `mol-dog-backup` order backs up every bead store every few
+hours into a mirror under `<city>/.dolt-backup/<database>`. Each sync only
+adds files to that mirror. When the live database is compacted, the history
+it drops stays in the backup for good, and because the backup's manifest still
+lists those files, Dolt's own `--prune-with-grace-period` cannot remove them.
+On cilador-city the city backup had reached 7.0 GB for a database whose fresh
+backup is 355 MB, and was growing by about 2.5 GB a month.
+
+The `rebuild-dolt-backups` order fixes that once a week. For each bead store
+whose backup is a `file://` directory it:
+
+1. syncs the live database into a new directory next to the backup;
+2. checks the new copy: it must restore, pass `dolt fsck`, read its issues
+   table, and its latest commit must exist in the live database's history;
+3. only then swaps it in and deletes the old backup.
+
+If any step fails, the old backup stays where it was (and `mol-dog-backup`
+keeps updating it), the partial copy is deleted, and the mayor is mailed. A
+store with no backup yet, or with a backup that is not `file://`, is skipped.
+The order shares `mol-dog-backup`'s lock, so the two never write a backup at
+the same time, and it cleans up after an interrupted run before it starts.
+
+It runs on a 7-day cooldown, so it also runs soon after you install it, and a
+week missed while the city was stopped is made up at the next start. It runs
+with no agent. Optional environment variables:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `GC_BACKUP_REBUILD_DRY_RUN` | `0` | `1` lists what would be rebuilt and changes nothing |
+| `GC_BACKUP_REBUILD_SYNC_TIMEOUT_SECS` | `1800` | limit for one full sync |
+| `GC_BACKUP_REBUILD_LOCK_WAIT_SECS` | `900` | how long to wait for the backup lock |
+| `GC_BACKUP_REBUILD_NOTIFY_TO` | the session whose template is `<binding>.mayor` | who is mailed on failure |
+
+The full sync goes through the `dolt` client rather than `gc bd`, because
+`bd`'s connection gives up on a query after about half a minute and a large
+database takes longer. It connects as the `bd` pack's own scripts do:
+`GC_DOLT_HOST`, `GC_DOLT_PORT`, `GC_DOLT_USER` and `GC_DOLT_PASSWORD`, with
+the port read from `.gc/runtime/packs/dolt/dolt-state.json` when unset.
+
+To preview it from the city root:
+
+    GC_BACKUP_REBUILD_DRY_RUN=1 GC_CITY_PATH=$PWD \
+      bash <house pack>/assets/scripts/rebuild-dolt-backups.sh
+
+To run it now: `gc order run rebuild-dolt-backups`.
+
 ## What still belongs in your city.toml
 
 Two things are city-only by schema, and a pack declaring them fails to load.
