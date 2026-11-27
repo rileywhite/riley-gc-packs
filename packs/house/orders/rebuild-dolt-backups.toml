@@ -1,0 +1,22 @@
+# rebuild-dolt-backups replaces each bead scope's Dolt backup with a fresh,
+# verified copy once a week, so the backups stop growing.
+#
+# The dolt pack's mol-dog-backup order syncs every few hours into a file://
+# mirror, and a sync only ever adds files to it. History the live database
+# drops at compaction stays in the backup for good, still listed in its
+# manifest, so Dolt's own prune cannot reclaim it. This order syncs each
+# database into a new directory, verifies the copy (restore, fsck, head commit
+# present in the live history), swaps it in and only then deletes the old
+# backup. A scope that fails keeps its old backup and the mayor is mailed.
+#
+# Cooldown, not cron: a missed week (city stopped) runs at the next start
+# instead of waiting another week, and a fresh install cleans up at once.
+# It shares mol-dog-backup's flock, so the two never write a backup at the
+# same time. Mechanical work, so it runs as exec with no agent. See
+# assets/scripts/rebuild-dolt-backups.sh.
+[order]
+description = "Rebuild each Dolt backup from scratch weekly so old history does not pile up"
+trigger = "cooldown"
+interval = "168h"
+timeout = "1h"
+exec = "$PACK_DIR/assets/scripts/rebuild-dolt-backups.sh"
